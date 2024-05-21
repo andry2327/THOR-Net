@@ -209,6 +209,7 @@ if __name__ == '__main__':
         os.makedirs(directory)
 
     count = 0
+    print('Processing train split ...')
     for subject in tqdm(sorted(os.listdir(os.path.join(train)))):
         s_path = os.path.join(train, subject)
         rgb = os.path.join(s_path, 'rgb')
@@ -220,8 +221,11 @@ if __name__ == '__main__':
             meta_file = os.path.join(meta, file_number+'.pkl')
             img_path = os.path.join(rgb, rgb_file)        
             depth_path = os.path.join(depth, file_number+'.png')        
-
-            data = np.load(meta_file, allow_pickle=True)
+            
+            try:
+                data = np.load(meta_file, allow_pickle=True)
+            except:
+                print(f'🟠 Problem with file {meta_file}, file skipped')
 
             if data['handJoints3D'] is None:
                 # Load previous frame's data if data is missing
@@ -277,6 +281,7 @@ if __name__ == '__main__':
 
     # # Evaluation
     count = 0
+    print('Processing evaluation split ...')
     for subject in tqdm(os.listdir(os.path.join(evaluation))):
         s_path = os.path.join(evaluation, subject)
         rgb = os.path.join(s_path, 'rgb')
@@ -289,7 +294,10 @@ if __name__ == '__main__':
             depth_path = os.path.join(depth, file_number+'.png')  
             meta_file = os.path.join(meta, file_number+'.pkl')
             count+=1
-            data = np.load(meta_file, allow_pickle=True)
+            try:
+                data = np.load(meta_file, allow_pickle=True)
+            except:
+                print(f'🟠 Problem with file {meta_file}, file skipped')
             if data['handJoints3D'] is None:
                 continue
                 # hand_object3d, hand_object2d, mesh3d, mesh2d = last_hand_object3d, last_hand_object2d, last_mesh3d, last_mesh2d
