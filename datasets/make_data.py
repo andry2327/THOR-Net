@@ -198,7 +198,7 @@ if __name__ == '__main__':
 
     mano_layer = ManoLayer(mano_root=mano_root, use_pca=False, ncomps=6, flat_hand_mean=True)
     names = ['images', 'depths', 'points2d', 'points3d', 'mesh3d', 'mesh2d']
-    '''file_dict_train = defaultdict(list)
+    file_dict_train = defaultdict(list)
     file_dict_val = defaultdict(list)
     name_object_dict = {}
 
@@ -206,9 +206,9 @@ if __name__ == '__main__':
 
     directory = f'val_size_{len(val_list)}'
     if not os.path.exists(directory):
-        os.makedirs(directory)'''
+        os.makedirs(directory)
 
-    '''count = 0
+    count = 0
     print('Processing train split:')
     for subject in tqdm(sorted(os.listdir(os.path.join(train)))):
         s_path = os.path.join(train, subject)
@@ -246,7 +246,7 @@ if __name__ == '__main__':
 
     print('Total number of failures:', count)
     print("size of training dataset", len(file_dict_train['points2d']))
-    print("size of validation dataset", len(file_dict_val['points2d']))'''
+    print("size of validation dataset", len(file_dict_val['points2d']))
 
     # Appending all possible 2D points to normalize
     # points_2d_lists = [file_dict_train['hand_mesh2d'], file_dict_train['points2d'], file_dict_val['hand_mesh2d'], file_dict_val['points2d']]
@@ -271,11 +271,11 @@ if __name__ == '__main__':
     # scaler3d = fit_scaler(all_points3d, '3d')
 
 
-    '''for k, v in file_dict_train.items():
+    for k, v in file_dict_train.items():
         np.save(f'{dataset_path}/{k}-train.npy', np.array(v))
 
     for k, v in file_dict_val.items():
-        np.save(f'{dataset_path}/{k}-val.npy', np.array(v))'''
+        np.save(f'{dataset_path}/{k}-val.npy', np.array(v))
 
     file_dict_test = defaultdict(list)
     name_object_dict = {}
