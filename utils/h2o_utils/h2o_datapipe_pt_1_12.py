@@ -6,8 +6,9 @@ import torchdata.datapipes as dp
 from torch.utils.data.datapipes.datapipe import DataChunk
 from torch.utils.data.datapipes.utils.decoder import ImageHandler
 
-from .h2o_datapipe_helpers import Decoder, GrayscaleDecoder, group_fn
-from .h2o_annotation_decoding import *
+# for H2O dataset only
+# from .h2o_datapipe_helpers import Decoder, GrayscaleDecoder, group_fn
+# from .h2o_annotation_decoding import *
 
 
 def merge_fn(sample: Tuple) -> DataChunk:
