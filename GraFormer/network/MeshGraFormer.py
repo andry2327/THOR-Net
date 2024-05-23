@@ -58,7 +58,7 @@ class MeshGraFormer(nn.Module):
         if num_kps3d == 50: #i.e. h2o 2 hands and object
             level2 = num_verts // 4 - 1
         else:
-            level2 = num_verts // 4
+            level2 = num_verts // 4 - 1
             
         obj = ''
         if num_kps3d == 50 or num_kps3d == 29:

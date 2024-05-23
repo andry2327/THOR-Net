@@ -172,7 +172,9 @@ class THOR(FasterRCNN):
                  # keypoint parameters
                  keypoint_roi_pool=None, keypoint_head=None, keypoint_predictor=None, 
                  num_kps2d=21, num_kps3d=50, num_verts=2556, photometric=False, hid_size=128,
-                 graph_input='heatmaps', num_features=2048, device='cpu', dataset_name='h2o'):
+                 graph_input='heatmaps', num_features=2048, device='cuda', dataset_name='h2o'):
+
+        self.device = device
 
         assert isinstance(keypoint_roi_pool, (MultiScaleRoIAlign, type(None)))
         if min_size is None:
@@ -317,8 +319,18 @@ model_urls = {
 
 
 def create_thor(pretrained=False, progress=True,
-                              num_classes=2, num_kps2d=17,
-                              pretrained_backbone=True, trainable_backbone_layers=None, **kwargs):
+                              num_classes=2, 
+                              num_kps2d=29, # from H03D
+                              num_kps3d=29, # from H03D
+                              num_verts=1778, # from H03D
+                              pretrained_backbone=True, trainable_backbone_layers=None, 
+                              rpn_post_nms_top_n_train=1,
+                              device='cuda',
+                              num_features=128, 
+                              hid_size=96,
+                              photometric=True, 
+                              graph_input='heatmaps', 
+                              dataset_name='ho3d'):
     """
     Constructs a Keypoint R-CNN model with a ResNet-50-FPN backbone.
 
@@ -383,5 +395,6 @@ def create_thor(pretrained=False, progress=True,
 
     # backbone = mobilenet_backbone("mobilenet_v3_large", pretrained_backbone, True, trainable_layers=trainable_backbone_layers)
     backbone = resnet_fpn_backbone('resnet50', pretrained_backbone, trainable_layers=trainable_backbone_layers)
-    model = THOR(backbone, num_classes, num_kps2d=num_kps2d, **kwargs)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = THOR(backbone, num_classes, num_kps2d=num_kps2d, num_kps3d=num_kps3d, dataset_name=dataset_name, device=device)
     return model
