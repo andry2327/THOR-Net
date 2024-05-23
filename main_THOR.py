@@ -15,8 +15,9 @@ import os
 
 from utils.options import parse_args_function
 from utils.utils import freeze_component, calculate_keypoints, create_loader
-from utils.h2o_utils.h2o_dataset_utils import load_tar_split
-from utils.h2o_utils.h2o_preprocessing_utils import MyPreprocessor
+# for H2O dataset only
+# from utils.h2o_utils.h2o_dataset_utils import load_tar_split 
+# from utils.h2o_utils.h2o_preprocessing_utils import MyPreprocessor
 
 from models.thor_net import create_thor
 
