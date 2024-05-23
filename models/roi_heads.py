@@ -385,7 +385,6 @@ class RoIHeads(nn.Module):
                 else:
                     palms_gt = None
                 
-                print('WORKING')
                 rcnn_loss_keypoint, rcnn_loss_keypoint3d, rcnn_loss_mesh3d, rcnn_loss_photometric = keypointrcnn_loss(
                                                                             keypoint_logits, keypoint_proposals, gt_keypoints, 
                                                                             pos_matched_idxs, keypoint3d, keypoints3d_gt, 

@@ -215,7 +215,7 @@ def keypointrcnn_loss(keypoint_logits, proposals, gt_keypoints, keypoint_matched
     N, K, D = mesh3d_pred[:, :, :3].shape
     xyz_rgb_pred = torch.clone(mesh3d_pred)
     mesh3d_pred = torch.reshape(mesh3d_pred[:, :, :3], (N * K, D)) 
-    mesh3d_targets = torch.reshape(mesh3d_targets, (N * K, D))
+    mesh3d_targets = torch.reshape(mesh3d_targets[:, :, :3], (N * K, D)) # DEBUG
     mesh3d_loss = F.mse_loss(mesh3d_pred, mesh3d_targets) / 1000
 
     # Photometric Loss
