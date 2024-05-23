@@ -150,13 +150,6 @@ def keypointrcnn_loss(keypoint_logits, proposals, gt_keypoints, keypoint_matched
     meshes3d = []
     images = []
     palms = []
-    # DEBUG
-    print('self.num_classes = ', end='')
-    print(num_classes)
-    print('self.dataset_name = ', end='')
-    print(dataset_name)
-    print('self.photometric = ', end='')
-    print(photometric)
     if palms_gt is None:
         palms_gt = [None] * len(proposals)
 
