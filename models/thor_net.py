@@ -396,5 +396,10 @@ def create_thor(pretrained=False, progress=True,
     # backbone = mobilenet_backbone("mobilenet_v3_large", pretrained_backbone, True, trainable_layers=trainable_backbone_layers)
     backbone = resnet_fpn_backbone('resnet50', pretrained_backbone, trainable_layers=trainable_backbone_layers)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = THOR(backbone, num_classes, num_kps2d=num_kps2d, num_kps3d=num_kps3d, dataset_name=dataset_name, device=device)
+    model = THOR(backbone, 
+                 num_classes, 
+                 num_kps2d=num_kps2d, 
+                 num_kps3d=num_kps3d, 
+                 dataset_name=dataset_name, 
+                 device=device)
     return model
