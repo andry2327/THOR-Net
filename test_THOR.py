@@ -143,7 +143,7 @@ for key in list(state_dict.keys()):
 model.load_state_dict(state_dict)
 model = model.eval()
 # print(model)
-print('Model loaded!')
+print(f'🟢 Model "{pretrained_model}" loaded!')
 
 keys = ['boxes', 'labels', 'keypoints', 'keypoints3d', 'mesh3d']
 if args.dataset_name == 'ho3d':
