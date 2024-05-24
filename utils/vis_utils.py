@@ -694,9 +694,10 @@ def write_obj(verts, faces, filename, texture=None):
         m = pymeshlab.Mesh(verts, faces)
     ms = pymeshlab.MeshSet()
     output_dir, filename = os.path.split(filename)
-    os.makedirs(output_dir)
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
     ms.add_mesh(m, f'{os.path.join(output_dir, filename)}')
-    print('DEBUG: ', end='')
+    print('\nDEBUG: ', end='')
     print(output_dir, filename)
     filename += '.obj'
     ms.save_current_mesh(f'{os.path.join(output_dir, filename)}', save_vertex_normal=True, save_vertex_color=True, save_polygonal=True, format="obj")

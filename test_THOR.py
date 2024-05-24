@@ -183,7 +183,8 @@ for i, ts_data in tqdm(enumerate(testloader), total=len(testloader)):
 
         name = path.split('/')[-1]
         output_dir = f'./outputs/visual_results/{args.seq}'
-        os.makedirs(output_dir)
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
 
         if (num_classes == 2 and 1 in predictions['labels']) or (num_classes == 4 and set([1, 2, 3]).issubset(predictions['labels'])):
             visualize2d(img, predictions, labels, filename=f'{os.path.join(output_dir, name)}', palm=palm, evaluate=evaluate)

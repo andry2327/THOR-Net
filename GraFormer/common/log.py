@@ -11,7 +11,7 @@ __all__ = ['Logger', 'LoggerMonitor', 'savefig']
 
 def savefig(fname, dpi=None):
     dpi = 150 if dpi == None else dpi
-    plt.savefig(fname, dpi=dpi)
+    plt.savefig(fname+'.png', dpi=dpi)
 
 
 def plot_overlap(logger, names=None):
