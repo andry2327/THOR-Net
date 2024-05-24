@@ -325,6 +325,7 @@ def create_thor(pretrained=False, progress=True,
                               num_verts=1778, # from H03D
                               pretrained_backbone=True, trainable_backbone_layers=None, 
                               rpn_post_nms_top_n_train=1,
+                              rpn_post_nms_top_n_test=1,
                               device='cuda',
                               num_features=128, 
                               hid_size=96,
