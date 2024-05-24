@@ -65,7 +65,7 @@ model = create_thor(num_kps2d=num_kps2d, num_kps3d=num_kps3d, num_verts=num_vert
                                 device=device, num_features=args.num_features, hid_size=args.hid_size,
                                 photometric=args.photometric, graph_input=graph_input, dataset_name=args.dataset_name, testing=args.testing)
 
-logging.info('THOR-Net is loaded')
+logging.info('🟢 THOR-Net is loaded')
 
 if torch.cuda.is_available():
     model = model.cuda(args.gpu_number[0])
@@ -93,7 +93,7 @@ keys = ['boxes', 'labels', 'keypoints', 'keypoints3d', 'mesh3d', 'palm']
 
 """ training """
 
-logging.info('Begin training the network')
+logging.info('🟢 Begin training the network')
 
 for epoch in range(start, args.num_iterations):  # loop over the dataset multiple times
     
