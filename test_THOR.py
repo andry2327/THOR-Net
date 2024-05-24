@@ -18,7 +18,10 @@ from utils.utils import *
 # from utils.h2o_utils.h2o_preprocessing_utils import MyPreprocessor
 from utils.options import parse_args_function
 
-left_hand_faces, right_hand_faces, obj_faces = load_faces()
+# Input parameters
+args = parse_args_function()
+
+left_hand_faces, right_hand_faces, obj_faces = load_faces(mano_root=args.mano_root)
 
 def visualize2d(img, predictions, labels=None, filename=None, palm=None, evaluate=False):
     
@@ -81,9 +84,6 @@ def visualize2d(img, predictions, labels=None, filename=None, palm=None, evaluat
     # plt.savefig(filename)
     # plt.clf()
     plt.close(fig)
-
-# Input parameters
-args = parse_args_function()
 
 # Transformer function
 transform_function = transforms.Compose([transforms.ToTensor()])

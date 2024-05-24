@@ -12,6 +12,12 @@ def parse_args_function():
     )
 
     parser.add_argument(
+        "--mano_root",
+        default='../mano_v1_2/models',
+        help="Path to 'mano_v1_2' folder"
+    )
+
+    parser.add_argument(
         "--root",
         default='./datasets/ho3d/',
         help="Input image, directory"
