@@ -7,7 +7,7 @@ def parse_args_function():
 
     parser.add_argument(
         "--testing",
-        action='store_false',
+        action='store_true',
         help="Define if model training or testing"
     )
     
