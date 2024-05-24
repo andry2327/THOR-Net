@@ -414,8 +414,7 @@ def create_thor(pretrained=False, progress=True,
                     graph_input=graph_input,
                     dataset_name=dataset_name)
     else: # args: Testing = True
-        model = THOR(backbone, 
-                    pretrained=False,
+        model = THOR(backbone,
                     num_classes=num_classes, 
                     device=device,
                     num_kps2d=num_kps2d, num_kps3d=num_kps3d, 
