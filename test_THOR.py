@@ -13,8 +13,9 @@ from utils.vis_utils import *
 from tqdm import tqdm
 from models.thor_net import create_thor
 from utils.utils import *
-from utils.h2o_utils.h2o_dataset_utils import load_tar_split
-from utils.h2o_utils.h2o_preprocessing_utils import MyPreprocessor
+# for H2O dataset only
+# from utils.h2o_utils.h2o_dataset_utils import load_tar_split
+# from utils.h2o_utils.h2o_preprocessing_utils import MyPreprocessor
 from utils.options import parse_args_function
 
 left_hand_faces, right_hand_faces, obj_faces = load_faces()
