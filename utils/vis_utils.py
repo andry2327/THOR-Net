@@ -696,6 +696,7 @@ def write_obj(verts, faces, filename, texture=None):
     output_dir, filename = os.path.split(filename)
     os.makedirs(output_dir)
     ms.add_mesh(m, f'{os.path.join(output_dir, filename)}')
+    print('DEBUG: ', end='')
     print(output_dir, filename)
-    ms.save_current_mesh(f'{os.path.join(output_dir, filename+'.obj')}', save_vertex_normal=True, save_vertex_color=True, save_polygonal=True, format="obj")
-
+    filename += '.obj'
+    ms.save_current_mesh(f'{os.path.join(output_dir, filename)}', save_vertex_normal=True, save_vertex_color=True, save_polygonal=True, format="obj")
