@@ -1,4 +1,5 @@
 from posixpath import split
+import os
 import torch 
 import torchvision.transforms as transforms
 import torch.nn as nn
@@ -141,8 +142,8 @@ for key in list(state_dict.keys()):
     state_dict[key.replace('module.', '')] = state_dict.pop(key)
 model.load_state_dict(state_dict)
 model = model.eval()
-print(model)
-print('model loaded!')
+# print(model)
+print('Model loaded!')
 
 keys = ['boxes', 'labels', 'keypoints', 'keypoints3d', 'mesh3d']
 if args.dataset_name == 'ho3d':
@@ -181,11 +182,13 @@ for i, ts_data in tqdm(enumerate(testloader)):
     if args.visualize: 
 
         name = path.split('/')[-1]
-
+        output_dir = f'./outputs/visual_results/{args.seq}'
+        os.makedirs(output_dir)
+        
         if (num_classes == 2 and 1 in predictions['labels']) or (num_classes == 4 and set([1, 2, 3]).issubset(predictions['labels'])):
-            visualize2d(img, predictions, labels, filename=f'./outputs/visual_results/{args.seq}/{name}', palm=palm, evaluate=evaluate)
+            visualize2d(img, predictions, labels, filename=f'{os.path.join(output_dir,name)}', palm=palm, evaluate=evaluate)
         else:
-            cv2.imwrite(f'./visual_results/{args.seq}/{name}', cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
+            cv2.imwrite(f'{os.path.join(output_dir,name)}', cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
 
     ### Evaluation
     if evaluate:
