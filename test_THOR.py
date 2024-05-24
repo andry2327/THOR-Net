@@ -19,6 +19,9 @@ from utils.utils import *
 # from utils.h2o_utils.h2o_preprocessing_utils import MyPreprocessor
 from utils.options import parse_args_function
 
+import warnings
+warnings.filterwarnings("ignore", message="Warning: parameter format not found")
+
 # Input parameters
 args = parse_args_function()
 
