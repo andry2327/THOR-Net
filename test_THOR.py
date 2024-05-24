@@ -203,8 +203,8 @@ for i, ts_data in tqdm(enumerate(testloader), total=len(testloader)):
     if evaluate:
         c = save_calculate_error(predictions, labels, path, errors, output_dicts, c, num_classes, args.dataset_name, obj=args.object, generate_mesh=True)
 
-    if i == 10:
-        break
+    # if i == 10:
+    #     break
 
 
 if evaluate:
