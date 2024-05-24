@@ -639,14 +639,14 @@ def read_annotation(base_dir, seq_name, file_id, split):
     return pkl_data
 
 
-def load_faces(mano_root='../mano_v1_2/models'):
+def load_faces(mano_root='../mano_v1_2/models', obj_root='../datasets/objects/mesh_1000/book.obj'):
     
     # Load right hand faces
     mano_layer = ManoLayer(mano_root=mano_root, use_pca=False, ncomps=6, flat_hand_mean=True)
     right_hand_faces = mano_layer.th_faces
 
     # Loading object faces
-    obj_mesh = read_obj('../datasets/objects/mesh_1000/book.obj')
+    obj_mesh = read_obj(obj_root)
     obj_faces = obj_mesh.f
 
     # Load left hand faces

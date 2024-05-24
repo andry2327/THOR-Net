@@ -18,6 +18,12 @@ def parse_args_function():
     )
 
     parser.add_argument(
+        "--obj_root",
+        default='../datasets/objects/mesh_1000/book.obj',
+        help="Path to 'book.obj' file"
+    )
+
+    parser.add_argument(
         "--root",
         default='./datasets/ho3d/',
         help="Input image, directory"
