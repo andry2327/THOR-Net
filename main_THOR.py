@@ -136,8 +136,8 @@ for epoch in range(start, args.num_iterations):  # loop over the dataset multipl
             running_photometric_loss += loss_dict['loss_photometric'].data
 
         if (i+1) % args.log_batch == 0:    # print every log_iter mini-batches
-            logging.info('[%d, %5d] loss 2d: %.4f, loss 3d: %.4f, mesh loss 3d:%.4f, photometric loss: %.4f' % 
-            (epoch + 1, i + 1, running_loss2d / args.log_batch, running_loss3d / args.log_batch, 
+            logging.info('[Epoch %d, Batch %5d/%d] loss 2d: %.4f, loss 3d: %.4f, mesh loss 3d: %.4f, photometric loss: %.4f' % 
+            (epoch + 1, i + 1, len(trainloader), running_loss2d / args.log_batch, running_loss3d / args.log_batch, 
             running_mesh_loss3d / args.log_batch, running_photometric_loss / args.log_batch))
             running_mesh_loss3d = 0.0
             running_loss2d = 0.0
