@@ -6,8 +6,8 @@ def parse_args_function():
     # Required arguments: input and output files.
 
     parser.add_argument(
-        "--training",
-        action='store_true',
+        "--testing",
+        action='store_false',
         help="Define if model training or testing"
     )
     
