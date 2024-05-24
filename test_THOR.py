@@ -20,7 +20,6 @@ from utils.options import parse_args_function
 
 # Input parameters
 args = parse_args_function()
-print(f'args.testing: {args.testing}') # DEBUG
 
 left_hand_faces, right_hand_faces, obj_faces = load_faces(mano_root=args.mano_root, obj_root=args.obj_root)
 
@@ -128,7 +127,7 @@ model = create_thor(pretrained=False, num_classes=num_classes, device=device,
                                 rpn_post_nms_top_n_test=num_classes-1, 
                                 box_score_thresh=0.0,
                                 photometric=args.photometric, graph_input=graph_input, dataset_name=args.dataset_name,
-                                num_features=args.num_features, hid_size=args.hid_size)
+                                num_features=args.num_features, hid_size=args.hid_size, testing=args.testing)
 
 if torch.cuda.is_available():
     model = model.cuda(device=args.gpu_number[0])

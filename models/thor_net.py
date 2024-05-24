@@ -326,12 +326,14 @@ def create_thor(pretrained=False, progress=True,
                               pretrained_backbone=True, trainable_backbone_layers=None, 
                               rpn_post_nms_top_n_train=1,
                               rpn_post_nms_top_n_test=1,
+                              box_score_thresh=0.0,
                               device='cuda',
                               num_features=128, 
                               hid_size=96,
                               photometric=True, 
                               graph_input='heatmaps', 
-                              dataset_name='ho3d'):
+                              dataset_name='ho3d',
+                              testing=False):
     """
     Constructs a Keypoint R-CNN model with a ResNet-50-FPN backbone.
 
@@ -397,10 +399,33 @@ def create_thor(pretrained=False, progress=True,
     # backbone = mobilenet_backbone("mobilenet_v3_large", pretrained_backbone, True, trainable_layers=trainable_backbone_layers)
     backbone = resnet_fpn_backbone('resnet50', pretrained_backbone, trainable_layers=trainable_backbone_layers)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = THOR(backbone, 
-                 num_classes, 
-                 num_kps2d=num_kps2d, 
-                 num_kps3d=num_kps3d, 
-                 dataset_name=dataset_name, 
-                 device=device)
+
+    if testing: # args: Testing = True
+        model = THOR(backbone, 
+                    num_classes, 
+                    num_kps2d=num_kps2d, num_kps3d=num_kps3d, 
+                    num_verts=num_verts,
+                    num_classes=num_classes,
+                    rpn_post_nms_top_n_train=rpn_post_nms_top_n_train,
+                    device=device,
+                    num_features=num_features,
+                    hid_size=hid_size,
+                    photometric=photometric,
+                    graph_input=graph_input,
+                    dataset_name=dataset_name)
+    else: # args: Testing = False (-> modle is training)
+        model = THOR(backbone, 
+                    pretrained=False,
+                    num_classes=num_classes, 
+                    device=device,
+                    num_kps2d=num_kps2d, num_kps3d=num_kps3d, 
+                    num_verts=num_verts,
+                    rpn_post_nms_top_n_test=rpn_post_nms_top_n_test,
+                    box_score_thresh=box_score_thresh,
+                    photometric=photometric,
+                    graph_input=graph_input,
+                    dataset_name=dataset_name,
+                    num_features=num_features,
+                    hid_size=hid_size,
+                    )
     return model

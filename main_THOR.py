@@ -63,7 +63,7 @@ else: # i.e. HO3D
 model = create_thor(num_kps2d=num_kps2d, num_kps3d=num_kps3d, num_verts=num_verts, num_classes=num_classes, 
                                 rpn_post_nms_top_n_train=num_classes-1, 
                                 device=device, num_features=args.num_features, hid_size=args.hid_size,
-                                photometric=args.photometric, graph_input=graph_input, dataset_name=args.dataset_name)
+                                photometric=args.photometric, graph_input=graph_input, dataset_name=args.dataset_name, testing=args.testing)
 
 logging.info('THOR-Net is loaded')
 
