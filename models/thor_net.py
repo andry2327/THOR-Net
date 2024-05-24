@@ -400,7 +400,7 @@ def create_thor(pretrained=False, progress=True,
     backbone = resnet_fpn_backbone('resnet50', pretrained_backbone, trainable_layers=trainable_backbone_layers)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    if testing: # args: Testing = True
+    if not testing: # args: Testing = False (-> modle is training)
         model = THOR(backbone, 
                     num_classes, 
                     num_kps2d=num_kps2d, num_kps3d=num_kps3d, 
@@ -413,7 +413,7 @@ def create_thor(pretrained=False, progress=True,
                     photometric=photometric,
                     graph_input=graph_input,
                     dataset_name=dataset_name)
-    else: # args: Testing = False (-> modle is training)
+    else: # args: Testing = True
         model = THOR(backbone, 
                     pretrained=False,
                     num_classes=num_classes, 
