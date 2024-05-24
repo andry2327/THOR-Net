@@ -135,7 +135,7 @@ if torch.cuda.is_available():
 
 ### Load model
 pretrained_model = f'./checkpoints/{args.checkpoint_folder}/model-{args.checkpoint_id}.pkl'
-model.load_state_dict(torch.load(pretrained_model, map_location='cuda:0'))
+model.load_state_dict(torch.load(pretrained_model, map_location=device))
 model = model.eval()
 print(model)
 print('model loaded!')
