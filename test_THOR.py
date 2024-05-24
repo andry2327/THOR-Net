@@ -21,6 +21,9 @@ from utils.options import parse_args_function
 # Input parameters
 args = parse_args_function()
 print(f'args.training: {args.training}') # DEBUG
+print(f'args.training: {args.visualize}') # DEBUG
+print(f'args.training: {args.photometric}') # DEBUG
+
 left_hand_faces, right_hand_faces, obj_faces = load_faces(mano_root=args.mano_root, obj_root=args.obj_root)
 
 def visualize2d(img, predictions, labels=None, filename=None, palm=None, evaluate=False):
