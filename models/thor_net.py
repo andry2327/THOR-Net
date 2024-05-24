@@ -426,6 +426,5 @@ def create_thor(pretrained=False, progress=True,
                     graph_input=graph_input,
                     dataset_name=dataset_name,
                     num_features=num_features,
-                    hid_size=hid_size,
-                    )
+                    hid_size=hid_size)
     return model
