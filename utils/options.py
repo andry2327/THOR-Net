@@ -4,6 +4,12 @@ import argparse
 def parse_args_function():
     parser = argparse.ArgumentParser()
     # Required arguments: input and output files.
+
+    parser.add_argument(
+        "--training",
+        default='store_true',
+        help="Define if model training or testing"
+    )
     
     parser.add_argument(
         "--dataset_name",
