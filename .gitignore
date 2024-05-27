@@ -19,3 +19,6 @@ models/__pycache__/generalized_rcnn.cpython-38.pyc
 utils/__pycache__/options.cpython-38.pyc
 utils/__pycache__/rcnn_utils.cpython-38.pyc
 outputs
+utils/__pycache__/dataset.cpython-310.pyc
+utils/__pycache__/rcnn_utils.cpython-310.pyc
+utils/__pycache__/vis_utils.cpython-310.pyc
