@@ -13,7 +13,7 @@ import pymeshlab
 from manopth.manolayer import ManoLayer
 
 import warnings
-warnings.filterwarnings("ignore", message="Warning: parameter format not found")
+warnings.filterwarnings('ignore')
 
 """ General util functions. """
 def _assert_exist(p):

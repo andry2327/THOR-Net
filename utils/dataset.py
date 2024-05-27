@@ -41,7 +41,6 @@ class Dataset(data.Dataset):
         """
 
         image_path = self.images[index]
-        
         palm = self.points3d[index][0]
         point2d = self.points2d[index]
         point3d = self.points3d[index] - palm # Center around palm

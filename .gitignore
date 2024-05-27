@@ -18,3 +18,4 @@ GraFormer/common/__pycache__/quaternion.cpython-38.pyc
 models/__pycache__/generalized_rcnn.cpython-38.pyc
 utils/__pycache__/options.cpython-38.pyc
 utils/__pycache__/rcnn_utils.cpython-38.pyc
+outputs

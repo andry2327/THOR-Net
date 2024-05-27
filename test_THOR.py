@@ -20,7 +20,7 @@ from utils.utils import *
 from utils.options import parse_args_function
 
 import warnings
-warnings.filterwarnings("ignore", message="Warning: parameter format not found")
+warnings.filterwarnings('ignore')
 
 # Input parameters
 args = parse_args_function()
@@ -38,15 +38,15 @@ def visualize2d(img, predictions, labels=None, filename=None, palm=None, evaluat
 
     plot_id = 1
     fig_config = (fig, H, W)
-    # idx = list(predictions['labels']).index(1) #[0]
+    idx = list(predictions['labels']).index(1) #[0]
     # Plot GT bounding boxes
     if evaluate:
         plot_bb_ax(img, labels, fig_config, plot_id, 'GT BB')
         plot_id += 1
         
         # Plot GT 2D keypoints
-        # plot_pose2d(img, labels, 0, palm, fig_config, plot_id, 'GT 2D pose')
-        # plot_id += 1
+        plot_pose2d(img, labels, 0, palm, fig_config, plot_id, 'GT 2D pose')
+        plot_id += 1
         
         # Plot GT 3D Keypoints
         plot_pose3d(labels, fig_config, plot_id, 'GT 3D pose', center=palm)
@@ -65,8 +65,8 @@ def visualize2d(img, predictions, labels=None, filename=None, palm=None, evaluat
     plot_id += 1
 
     # Plot predicted 2D keypoints
-    # plot_pose2d(img, predictions, idx, palm, fig_config, plot_id, 'Predicted 2D pose')
-    # plot_id += 1
+    plot_pose2d(img, predictions, idx, palm, fig_config, plot_id, 'Predicted 2D pose')
+    plot_id += 1
 
     # plot_pose_heatmap(img, predictions, idx, palm, fig_config, plot_id)
     # plot_id += 1
@@ -85,7 +85,7 @@ def visualize2d(img, predictions, labels=None, filename=None, palm=None, evaluat
     
     fig.tight_layout()
     plt.show()
-    # plt.savefig(filename)
+    plt.savefig(filename)
     # plt.clf()
     plt.close(fig)
 
