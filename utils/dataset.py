@@ -51,7 +51,13 @@ class Dataset(data.Dataset):
             data = np.array(self.hdf5[image_path])
             original_image = np.array(Image.open(io.BytesIO(data)))[..., :3]
         else:
-            original_image = cv2.cvtColor(cv2.imread(image_path), cv2.COLOR_BGR2RGB)
+            try:
+                original_image = cv2.cvtColor(cv2.imread(image_path), cv2.COLOR_BGR2RGB)
+            except:
+                image_path = image_path.replace('gdrive', 'drive') # original files save with path 'content/gdrive/ ...'
+                # print(f'DEBUG: {image_path}')
+                original_image = cv2.cvtColor(cv2.imread(image_path), cv2.COLOR_BGR2RGB)
+                
 
         inputs = self.transform(original_image)  # [:3]
 
