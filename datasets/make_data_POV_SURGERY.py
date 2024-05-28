@@ -19,22 +19,41 @@ import joblib
 parser = argparse.ArgumentParser()
 
 # Loading dataset    
-parser.add_argument("--root", required=True, help="HO3D dataset folder")
-parser.add_argument("--mano_root", required=True, help="Path to MANO models")
-parser.add_argument("--YCBModelsDir", default='./datasets/ycb_models', help="Path to YCB object meshes folder")
-parser.add_argument("--dataset_path", default='./datasets/ho3d', help="Where to store dataset files")
+# parser.add_argument("--root", required=True, help="HO3D dataset folder")
+# parser.add_argument("--mano_root", required=True, help="Path to MANO models")
+# parser.add_argument("--YCBModelsDir", default='./datasets/ycb_models', help="Path to YCB object meshes folder")
+# parser.add_argument("--dataset_path", default='./datasets/ho3d', help="Where to store dataset files")
 
-args = parser.parse_args()
+# args = parser.parse_args()
 
-root = args.root
-YCBModelsDir = args.YCBModelsDir
-dataset_path = args.dataset_path
-mano_root = args.mano_root
+# root = args.root
+# YCBModelsDir = args.YCBModelsDir
+# dataset_path = args.dataset_path
+# mano_root = args.mano_root
 
-evaluation = os.path.join(root, 'evaluation')
-train = os.path.join(root, 'train')
+# DEBUG
+root = '/content/drive/MyDrive/Thesis/POV_Surgery_data'
+# YCBModelsDir = args.YCBModelsDir
+dataset_path = '/content/drive/MyDrive/Thesis/POV_Surgery_data'
+mano_root = '/content/drive/MyDrive/Thesis/mano_v1_2/models'
 
- 
+DATASET_ENTRIES_NAMES = [
+    "R2_d_diskplacer_1", "d_diskplacer_2", "m_friem_2", "r_scalpel_2",
+    "R2_d_diskplacer_2", "d_friem_1", "m_scalpel_1", "r_scalpel_3",
+    "R2_d_friem_1", "d_friem_2", "m_scalpel_2", "r_scalpel_4",
+    "R2_d_friem_2", "d_scalpel_1", "r_diskplacer_1", "s_diskplacer_1",
+    "R2_d_scalpel_1", "d_scalpel_2", "r_diskplacer_2", "s_diskplacer_2",
+    "R2_i_diskplacer_1", "i_diskplacer_1", "r_diskplacer_3", "s_friem_1",
+    "R2_r_diskplacer_1", "i_diskplacer_2", "r_diskplacer_4", "s_friem_2",
+    "R2_r_friem_1", "i_friem_1", "r_diskplacer_5", "s_friem_3",
+    "R2_r_scalpel_1", "i_friem_2", "r_diskplacer_6", "s_scalpel_1",
+    "R2_r_scalpel_2", "i_scalpel_1", "r_friem_1", "s_scalpel_2",
+    "R2_s_diskplacer_1", "i_scalpel_2", "r_friem_2", "s_scalpel_3",
+    "R2_s_friem_1", "m_diskplacer_1", "r_friem_3", "s_scalpel_4",
+    "R2_s_scalpel_1", "m_diskplacer_2", "r_friem_4",
+    "d_diskplacer_1", "m_friem_1", "r_scalpel_1"
+]
+
 # Load object mesh
 reorder_idx = np.array([0, 13, 14, 15, 16, 1, 2, 3, 17, 4, 5, 6, 18, 10, 11, 12, 19, 7, 8, 9, 20])
 
@@ -202,7 +221,8 @@ if __name__ == '__main__':
     file_dict_val = defaultdict(list)
     name_object_dict = {}
 
-    val_list = ['MC6', 'SiS1', 'SiBF12', 'GPMF11', 'SM4', 'SiBF14']
+    val_list = ["d_scalpel_1", "r_scalpel_4", "r_diskplacer_6", "r_friem_4", "s_friem_3", "s_scalpel_4"]
+    train_list = list(set(DATASET_ENTRIES_NAMES) - set(val_list))
 
     directory = f'val_size_{len(val_list)}'
     if not os.path.exists(directory):
@@ -210,11 +230,10 @@ if __name__ == '__main__':
 
     count = 0
     print('Processing train split:')
-    for subject in tqdm(sorted(os.listdir(os.path.join(train)))):
-        s_path = os.path.join(train, subject)
-        rgb = os.path.join(s_path, 'rgb')
-        depth = os.path.join(s_path, 'depth')
-        meta = os.path.join(s_path, 'meta')
+    for subject in tqdm(sorted(train_list)):
+        rgb = os.path.join(root, 'color', subject)
+        depth = os.path.join(root, 'depth', subject)
+        meta = os.path.join(root, 'annotation', subject)
         
         for rgb_file in sorted(os.listdir(rgb)):
             file_number = rgb_file.split('.')[0]
