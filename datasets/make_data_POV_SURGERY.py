@@ -54,6 +54,11 @@ DATASET_ENTRIES_NAMES = [
     "d_diskplacer_1", "m_friem_1", "r_scalpel_1"
 ]
 
+TEST_LIST = ['m_diskplacer_1', 'i_scalpel_1', 'd_friem_1', 'r_friem_3', 'R2_d_diskplacer_1', 'R2_r_scalpel_1', 'R2_d_friem_1', 
+             'R2_d_scalpel_1', 'R2_r_scalpel_2', 'R2_s_scalpel_1', 'R2_d_friem_2', 'R2_r_friem_1', 'R2_s_friem_1', 'R2_d_diskplacer_2',
+             'R2_r_diskplacer_1', 'R2_s_diskplacer_1', 'R2_i_diskplacer_1']
+TRAIN_LIST = list(set(DATASET_ENTRIES_NAMES)-set(TEST_LIST))
+
 # Load object mesh
 reorder_idx = np.array([0, 13, 14, 15, 16, 1, 2, 3, 17, 4, 5, 6, 18, 10, 11, 12, 19, 7, 8, 9, 20])
 
@@ -171,6 +176,10 @@ def load_mesh_from_manolayer(fullpose, beta, trans, mano_layer):
 
     return hand_joints, hand_verts, mano_layer.th_faces
 
+def transform_annotations(data, mano_layer, subset='train'):
+    pass
+    return hand_object3d, hand_object2d, mesh3d, mesh2d
+
 
 def load_annotations(data, mano_layer, subset='train'):
 
@@ -221,13 +230,15 @@ if __name__ == '__main__':
     file_dict_val = defaultdict(list)
     name_object_dict = {}
 
-    val_list = ["d_scalpel_1", "r_scalpel_4", "r_diskplacer_6", "r_friem_4", "s_friem_3", "s_scalpel_4"]
-    train_list = list(set(DATASET_ENTRIES_NAMES) - set(val_list))
+    val_list = ["i_friem_1", "s_scalpel_4", "d_scalpel_1", "r_scalpel_3", "r_diskplacer_5", "s_friem_2", "s_scalpel_3"]
+    train_list = list(set(TRAIN_LIST) - set(val_list))
 
     directory = f'val_size_{len(val_list)}'
     if not os.path.exists(directory):
         os.makedirs(directory)
 
+    print(len(train_list), len(val_list), len(TEST_LIST)) # DEBUG
+    print(f'TOT: {len(train_list)+len(val_list)+len(TEST_LIST)}')
     count = 0
     print('Processing train split:')
     for subject in tqdm(sorted(train_list)):
@@ -237,7 +248,10 @@ if __name__ == '__main__':
         
         for rgb_file in sorted(os.listdir(rgb)):
             file_number = rgb_file.split('.')[0]
-            meta_file = os.path.join(meta, file_number+'.pkl')
+            # Error in POV_SURGERY: some entries misses initial frame 00000
+            # -> copied from 00001 entries
+            file_number_meta_fixed = file_number if file_number!='00000' else '00001'
+            meta_file = os.path.join(meta, file_number_meta_fixed+'.pkl')
             img_path = os.path.join(rgb, rgb_file)        
             depth_path = os.path.join(depth, file_number+'.png')        
             
@@ -252,6 +266,7 @@ if __name__ == '__main__':
                 # count += 1
                 continue
             else:
+                data = transform_annotations(data, mano_layer) # make them compatible with HO-3D style
                 hand_object3d, hand_object2d, mesh3d, mesh2d = load_annotations(data, mano_layer)
 
       
