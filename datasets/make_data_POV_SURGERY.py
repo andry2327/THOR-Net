@@ -3,6 +3,7 @@ import numpy as np
 import trimesh
 import pickle
 import torch
+import torchvision.transforms as transforms
 import cv2
 import os
 import argparse
@@ -12,8 +13,11 @@ from tqdm import tqdm
 from manopth.manolayer import ManoLayer
 from sklearn.preprocessing import MinMaxScaler
 import joblib
+import sys
+sys.path.append('THOR-Net/datasets/pov_surgery_utils')
+from pov_surgery_utils.pov_surgery_processing import POVSURGERY
 
-# Change this path
+dataset = POVSURGERY(transforms.ToTensor(), "train")
 
 # Input parameters
 parser = argparse.ArgumentParser()
@@ -182,15 +186,21 @@ def transform_annotations(data, mano_layer, subset='train'):
 
 
 def load_annotations(data, mano_layer, subset='train'):
-
-    cam_intr = data['camMat']
+    
+    K = np.array([ # camera intrinsic parameters
+        [1198.4395, 0.0000, 960.0000], 
+        [0.0000, 1198.4395, 175.2000], 
+        [0.0000, 0.0000, 1.0000]
+        ])
+    
+    cam_intr = K
 
     if subset == 'train':
         hand3d = data['handJoints3D'][reorder_idx]
     else:
         hand3d = data['handJoints3D'].reshape((1, -1))
 
-    obj_corners = data['objCorners3D']
+    obj_corners = np.zeros(shape=(8, 3)) # POV-Surgery do not have annotationfor 
     # print(data)
     # print(len(data['handBoundingBox']))
     # Convert to non-OpenGL coordinates and multiply by thousand to convert from m to mm
@@ -237,8 +247,6 @@ if __name__ == '__main__':
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-    print(len(train_list), len(val_list), len(TEST_LIST)) # DEBUG
-    print(f'TOT: {len(train_list)+len(val_list)+len(TEST_LIST)}')
     count = 0
     print('Processing train split:')
     for subject in tqdm(sorted(train_list)):
