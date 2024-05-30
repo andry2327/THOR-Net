@@ -45,8 +45,6 @@ class POVSURGERY(torch.utils.data.Dataset):
         self.coord_change_mat = np.array([[1., 0., 0.], [0, -1., 0.], [0., 0., -1.]], dtype=np.float32)
         self.inp_res = 256
 
-
-
         if self.data_split == 'train':
             self.mode = 'train'
             self.base_info = pickle.load(open(os.path.join(BASE_DATA_PATH, 'handoccnet_train/2d_repro_ho3d_style_hocc_cleaned.pkl'), 'rb'))
@@ -182,18 +180,23 @@ class POVSURGERY(torch.utils.data.Dataset):
     #     return len(self.set_list)
     def __len__(self):
         return len(self.set_list)
-    def __getitem__(self, idx):
+    def get_item(self, seqName, id):
         sample = {}
+        seqName_id = f'{seqName}/{id}'
         if self.mode != 'demo':
-            seqName, id = self.set_list[idx].split("/")
+            # seqName, id = self.set_list[idx].split("/")
             img = Image.open(os.path.join(BASE_DATA_PATH,'color', seqName, id + '.jpg')).convert("RGB")
             frame_anno = pickle.load(open(os.path.join(BASE_DATA_PATH,'annotation', seqName, id + '.pkl'), 'rb'))
 
             sample["seqName"] = seqName
             sample["id"] = id
             if self.mode == 'train':
-                joints_uv_temp = self.base_info[self.set_list[idx]]['joints_uv']
-                p2d_temp = self.base_info[self.set_list[idx]]['p2d']
+                # TODO: DEBUG
+                print(f'seqName_id: {seqName_id}')
+                print(f'Is key ({seqName_id}) present: {seqName_id in self.base_info}') 
+                print(f'Possible keys:\n{sorted(set([x for x in self.base_info.keys() if seqName in x]))}')      
+                joints_uv_temp = self.base_info[seqName_id]['joints_uv']
+                p2d_temp = self.base_info[seqName_id]['p2d']
                 K = np.array([[1198.4395, 0.0000, 960.0000], [0.0000, 1198.4395, 175.2000], [0.0000, 0.0000, 1.0000]])
                 p2d = np.zeros_like(p2d_temp)
                 p2d[:, 0] = p2d_temp[:, 1]
@@ -251,8 +254,8 @@ class POVSURGERY(torch.utils.data.Dataset):
                 targets = sample
                 meta_info = {'root_joint_cam': rot_aug}
             else:
-                joints_uv_temp = self.base_info[self.set_list[idx]]['joints_uv']
-                p2d_temp = self.base_info[self.set_list[idx]]['p2d']
+                joints_uv_temp = self.base_info[seqName_id]['joints_uv']
+                p2d_temp = self.base_info[seqName_id]['p2d']
                 K = np.array([[1198.4395, 0.0000, 960.0000], [0.0000, 1198.4395, 175.2000], [0.0000, 0.0000, 1.0000]])
                 p2d = np.zeros_like(p2d_temp)
                 p2d[:, 0] = p2d_temp[:, 1]

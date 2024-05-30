@@ -10,21 +10,19 @@ import argparse
 from collections import defaultdict
 from PIL import Image
 from tqdm import tqdm
-from manopth.manolayer import ManoLayer
-from sklearn.preprocessing import MinMaxScaler
-import joblib
 import sys
 sys.path.append('THOR-Net/datasets/pov_surgery_utils')
+from pov_surgery_utils.utils.manopth.manopth.manolayer import ManoLayer
+from sklearn.preprocessing import MinMaxScaler
+import joblib
 from pov_surgery_utils.pov_surgery_processing import POVSURGERY
 from pov_surgery_utils.pov_surgery_dataset_split import PovSurgerySplits
-
-dataset = POVSURGERY(transforms.ToTensor(), "train")
 
 # Input parameters
 parser = argparse.ArgumentParser()
 
 # Loading dataset    
-parser.add_argument("--root", required=True, help="HO3D dataset folder")
+'''parser.add_argument("--root", required=True, help="HO3D dataset folder")
 parser.add_argument("--mano_root", required=True, help="Path to MANO models")
 parser.add_argument("--YCBModelsDir", default='./datasets/ycb_models', help="Path to YCB object meshes folder")
 parser.add_argument("--dataset_path", default='./datasets/ho3d', help="Where to store dataset files")
@@ -34,45 +32,18 @@ args = parser.parse_args()
 root = args.root
 YCBModelsDir = args.YCBModelsDir
 dataset_path = args.dataset_path
-mano_root = args.mano_root
+mano_root = args.mano_root'''
 
 # DEBUG
-# root = '/content/drive/MyDrive/Thesis/POV_Surgery_data'
-# # YCBModelsDir = args.YCBModelsDir
-# dataset_path = '/content/drive/MyDrive/Thesis/POV_Surgery_data'
-# mano_root = '/content/drive/MyDrive/Thesis/mano_v1_2/models'
+root = '/content/drive/MyDrive/Thesis/POV_Surgery_data'
+# YCBModelsDir = args.YCBModelsDir
+dataset_path = '/content/drive/MyDrive/Thesis/POV_Surgery_data'
+mano_root = '/content/drive/MyDrive/Thesis/mano_v1_2/models'
 
+# Get original POV-Surgery splits 
 train_list, test_list = PovSurgerySplits().get_splits()
-print(train_list, test_list)
-
-DATASET_ENTRIES_NAMES = [
-    "R2_d_diskplacer_1", "d_diskplacer_2", "m_friem_2", "r_scalpel_2",
-    "R2_d_diskplacer_2", "d_friem_1", "m_scalpel_1", "r_scalpel_3",
-    "R2_d_friem_1", "d_friem_2", "m_scalpel_2", "r_scalpel_4",
-    "R2_d_friem_2", "d_scalpel_1", "r_diskplacer_1", "s_diskplacer_1",
-    "R2_d_scalpel_1", "d_scalpel_2", "r_diskplacer_2", "s_diskplacer_2",
-    "R2_i_diskplacer_1", "i_diskplacer_1", "r_diskplacer_3", "s_friem_1",
-    "R2_r_diskplacer_1", "i_diskplacer_2", "r_diskplacer_4", "s_friem_2",
-    "R2_r_friem_1", "i_friem_1", "r_diskplacer_5", "s_friem_3",
-    "R2_r_scalpel_1", "i_friem_2", "r_diskplacer_6", "s_scalpel_1",
-    "R2_r_scalpel_2", "i_scalpel_1", "r_friem_1", "s_scalpel_2",
-    "R2_s_diskplacer_1", "i_scalpel_2", "r_friem_2", "s_scalpel_3",
-    "R2_s_friem_1", "m_diskplacer_1", "r_friem_3", "s_scalpel_4",
-    "R2_s_scalpel_1", "m_diskplacer_2", "r_friem_4",
-    "d_diskplacer_1", "m_friem_1", "r_scalpel_1"
-]
-
-TEST_LIST = ['m_diskplacer_1', 'i_scalpel_1', 'd_friem_1', 'r_friem_3', 'R2_d_diskplacer_1',
-             'R2_r_scalpel_1', 'R2_d_friem_1', 'R2_d_scalpel_1', 'R2_r_scalpel_2', 'R2_s_scalpel_1',
-             'R2_d_friem_2', 'R2_r_friem_1', 'R2_s_friem_1', 'R2_d_diskplacer_2', 'R2_r_diskplacer_1',
-             'R2_s_diskplacer_1', 'R2_i_diskplacer_1']
-TRAIN_LIST = list(set(DATASET_ENTRIES_NAMES)-set(TEST_LIST))
-TRAIN_LIST = ['r_diskplacer_1', 'm_diskplacer_2', 'r_diskplacer_2', 'r_diskplacer_3',
- 'r_diskplacer_4', 's_diskplacer_1', 'm_friem_1', 'm_friem_2', 'r_friem_1', 'r_friem_2', 's_friem_1', 's_friem_2',
- 'm_scalpel_1', 'm_scalpel_2', 'r_scalpel_1', 'r_scalpel_2', 's_scalpel_1', 's_scalpel_2',
- 'd_diskplacer_1', 'i_diskplacer_1', 'r_diskplacer_5', 'd_scalpel_1', 'r_scalpel_3',
- 's_scalpel_3', 'd_diskplacer_2', 'i_diskplacer_2', 'r_diskplacer_6', 's_diskplacer_2', 'd_friem_2',
- 'i_friem_2', 'r_friem_4', 's_friem_3', 'd_scalpel_2', 'i_scalpel_2', 'r_scalpel_4']
+val_list = ["d_scalpel_1", "r_scalpel_3", "r_diskplacer_5", "s_friem_2", "s_scalpel_3"]
+train_list = list(set(train_list) - set(val_list))
 
 # Load object mesh
 reorder_idx = np.array([0, 13, 14, 15, 16, 1, 2, 3, 17, 4, 5, 6, 18, 10, 11, 12, 19, 7, 8, 9, 20])
@@ -252,7 +223,7 @@ if __name__ == '__main__':
     name_object_dict = {}
 
     val_list = ["i_friem_1", "s_scalpel_4", "d_scalpel_1", "r_scalpel_3", "r_diskplacer_5", "s_friem_2", "s_scalpel_3"]
-    train_list = list(set(TRAIN_LIST) - set(val_list))
+    train_list = list(set(train_list) - set(val_list))
 
     directory = f'val_size_{len(val_list)}'
     if not os.path.exists(directory):
@@ -260,6 +231,7 @@ if __name__ == '__main__':
 
     count = 0
     print('Processing train split:')
+    dataset = POVSURGERY(transforms.ToTensor(), "train")
     for subject in tqdm(sorted(train_list)):
         rgb = os.path.join(root, 'color', subject)
         depth = os.path.join(root, 'depth', subject)
@@ -270,6 +242,7 @@ if __name__ == '__main__':
             # Error in POV_SURGERY: some entries misses initial frame 00000
             # -> copied from 00001 entries
             file_number_meta_fixed = file_number if file_number!='00000' else '00001'
+            data_extended = dataset.get_item(subject, file_number_meta_fixed) # # Load additional data from POV-Surgery annotiations 
             meta_file = os.path.join(meta, file_number_meta_fixed+'.pkl')
             img_path = os.path.join(rgb, rgb_file)        
             depth_path = os.path.join(depth, file_number+'.png')        
@@ -336,6 +309,7 @@ if __name__ == '__main__':
     # # Evaluation
     count = 0
     print('Processing evaluation split:')
+    dataset = POVSURGERY(transforms.ToTensor(), "evaluation")
     for subject in tqdm(os.listdir(os.path.join(evaluation))):
         s_path = os.path.join(evaluation, subject)
         rgb = os.path.join(s_path, 'rgb')
