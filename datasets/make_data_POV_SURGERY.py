@@ -16,6 +16,7 @@ import joblib
 import sys
 sys.path.append('THOR-Net/datasets/pov_surgery_utils')
 from pov_surgery_utils.pov_surgery_processing import POVSURGERY
+from pov_surgery_utils.pov_surgery_dataset_split import PovSurgerySplits
 
 dataset = POVSURGERY(transforms.ToTensor(), "train")
 
@@ -41,6 +42,9 @@ root = '/content/drive/MyDrive/Thesis/POV_Surgery_data'
 dataset_path = '/content/drive/MyDrive/Thesis/POV_Surgery_data'
 mano_root = '/content/drive/MyDrive/Thesis/mano_v1_2/models'
 
+train_list, test_list = PovSurgerySplits().get_splits()
+print(train_list, test_list)
+
 DATASET_ENTRIES_NAMES = [
     "R2_d_diskplacer_1", "d_diskplacer_2", "m_friem_2", "r_scalpel_2",
     "R2_d_diskplacer_2", "d_friem_1", "m_scalpel_1", "r_scalpel_3",
@@ -58,10 +62,17 @@ DATASET_ENTRIES_NAMES = [
     "d_diskplacer_1", "m_friem_1", "r_scalpel_1"
 ]
 
-TEST_LIST = ['m_diskplacer_1', 'i_scalpel_1', 'd_friem_1', 'r_friem_3', 'R2_d_diskplacer_1', 'R2_r_scalpel_1', 'R2_d_friem_1', 
-             'R2_d_scalpel_1', 'R2_r_scalpel_2', 'R2_s_scalpel_1', 'R2_d_friem_2', 'R2_r_friem_1', 'R2_s_friem_1', 'R2_d_diskplacer_2',
-             'R2_r_diskplacer_1', 'R2_s_diskplacer_1', 'R2_i_diskplacer_1']
+TEST_LIST = ['m_diskplacer_1', 'i_scalpel_1', 'd_friem_1', 'r_friem_3', 'R2_d_diskplacer_1',
+             'R2_r_scalpel_1', 'R2_d_friem_1', 'R2_d_scalpel_1', 'R2_r_scalpel_2', 'R2_s_scalpel_1',
+             'R2_d_friem_2', 'R2_r_friem_1', 'R2_s_friem_1', 'R2_d_diskplacer_2', 'R2_r_diskplacer_1',
+             'R2_s_diskplacer_1', 'R2_i_diskplacer_1']
 TRAIN_LIST = list(set(DATASET_ENTRIES_NAMES)-set(TEST_LIST))
+TRAIN_LIST = ['r_diskplacer_1', 'm_diskplacer_2', 'r_diskplacer_2', 'r_diskplacer_3',
+ 'r_diskplacer_4', 's_diskplacer_1', 'm_friem_1', 'm_friem_2', 'r_friem_1', 'r_friem_2', 's_friem_1', 's_friem_2',
+ 'm_scalpel_1', 'm_scalpel_2', 'r_scalpel_1', 'r_scalpel_2', 's_scalpel_1', 's_scalpel_2',
+ 'd_diskplacer_1', 'i_diskplacer_1', 'r_diskplacer_5', 'd_scalpel_1', 'r_scalpel_3',
+ 's_scalpel_3', 'd_diskplacer_2', 'i_diskplacer_2', 'r_diskplacer_6', 's_diskplacer_2', 'd_friem_2',
+ 'i_friem_2', 'r_friem_4', 's_friem_3', 'd_scalpel_2', 'i_scalpel_2', 'r_scalpel_4']
 
 # Load object mesh
 reorder_idx = np.array([0, 13, 14, 15, 16, 1, 2, 3, 17, 4, 5, 6, 18, 10, 11, 12, 19, 7, 8, 9, 20])

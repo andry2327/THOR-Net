@@ -20,7 +20,7 @@ mano = MANO()
 
 ''' ------------- INPUT PARAMETERS ------------- '''
 # base path for POV_Surgery_data 
-BASE_DATA_PATH = '/content/gdrive/MyDrive/Thesis/POV_Surgery_data'
+BASE_DATA_PATH = '/content/drive/MyDrive/Thesis/POV_Surgery_data'
 ''' -------------------------------------------- '''
 
 
@@ -50,18 +50,18 @@ class POVSURGERY(torch.utils.data.Dataset):
             self.mode = 'train'
             self.base_info = pickle.load(open(os.path.join(BASE_DATA_PATH, 'handoccnet_train/2d_repro_ho3d_style_hocc_cleaned.pkl'), 'rb'))
             self.set_list = list(self.base_info.keys())
-            print(f'TRAIN:\n{self.set_list}')
+            # print(f'TRAIN:\n{self.set_list}')
         elif self.data_split == 'validation':
             self.mode = 'validation'
             self.base_info = pickle.load(open(os.path.join(BASE_DATA_PATH, 'handoccnet_train/2d_repro_ho3d_style_hocc_cleaned.pkl'), 'rb'))
             self.set_list = list(self.base_info.keys())
-            print(f'VALIDATION:\n{self.set_list}')
+            # print(f'VALIDATION:\n{self.set_list}')
         else:
             self.mode = 'evaluation'
             #self.base_info = pickle.load(open('/media/rui/mac_data/POV_surgery/demo_idx_selected.pkl', 'rb'))
             self.base_info = pickle.load(open(os.path.join(BASE_DATA_PATH, 'handoccnet_train/2d_repro_ho3d_style_test_cleaned.pkl'), 'rb'))
             self.set_list = list(self.base_info.keys())
-            print(f'EVALUATION:\n{self.set_list}')
+            # print(f'EVALUATION:\n{self.set_list}')
             
 
         # if self.data_split != 'train':
