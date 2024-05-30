@@ -2,7 +2,7 @@ import torch
 import numpy as np
 import sys
 sys.path.append('THOR-Net/datasets/pov_surgery_utils')
-from pov_surgery_utilsutils.config_pov_surgery import Config as cfg
+from pov_surgery_utils.utils.config_pov_surgery import Config as cfg
 
 def cam2pixel(cam_coord, f, c):
     x = cam_coord[:,0] / cam_coord[:,2] * f[0] + c[0]
