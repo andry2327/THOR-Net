@@ -3,7 +3,7 @@ import cv2
 import random
 import sys
 sys.path.append('THOR-Net/datasets/pov_surgery_utils')
-from utils.config_pov_surgery import Config as cfg
+from pov_surgery_utils.utils.config_pov_surgery import Config as cfg
 import math
 import torchvision
 

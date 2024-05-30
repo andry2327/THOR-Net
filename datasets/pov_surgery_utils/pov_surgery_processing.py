@@ -1,4 +1,5 @@
 import os
+import sys
 import os.path as osp
 import numpy as np
 import torch
@@ -7,12 +8,12 @@ import cv2
 from torchvision.transforms import functional
 import random
 import json
-from utils.preprocessing import load_img, get_bbox, process_bbox, generate_patch_image, augmentation
-from utils.transforms import world2cam, cam2pixel, pixel2cam, rigid_align, transform_joint_to_other_db
-from utils.vis import vis_keypoints, vis_mesh, save_obj, vis_keypoints_with_skeleton
-from utils.mano import MANO
+sys.path.append('THOR-Net/datasets/pov_surgery_utils')
+from pov_surgery_utils.utils.preprocessing import load_img, get_bbox, process_bbox, generate_patch_image, augmentation
+from pov_surgery_utils.utils.transforms import world2cam, cam2pixel, pixel2cam, rigid_align, transform_joint_to_other_db
+from pov_surgery_utils.utils.vis import vis_keypoints, vis_mesh, save_obj, vis_keypoints_with_skeleton
+from pov_surgery_utils.utils.mano import MANO
 import pickle
-import sys
 sys.path.append('THOR-Net/datasets/pov_surgery_utils')
 import pov_surgery_utils.datautil as dataset_util
 

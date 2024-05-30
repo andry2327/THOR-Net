@@ -4,10 +4,10 @@ import os.path as osp
 import json
 import sys
 sys.path.append('THOR-Net/datasets/pov_surgery_utils')
-from utils.config_pov_surgery import Config as cfg
+from pov_surgery_utils.utils.config_pov_surgery import Config as cfg
 
 sys.path.insert(0, cfg.mano_path)
-import utils.manopth
+import pov_surgery_utils.utils.manopth
 from manopth.manolayer import ManoLayer
 
 # from utils.manopth.manopth.manolayer import M
