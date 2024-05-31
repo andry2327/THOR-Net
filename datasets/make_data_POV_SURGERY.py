@@ -50,6 +50,16 @@ reorder_idx = np.array([0, 13, 14, 15, 16, 1, 2, 3, 17, 4, 5, 6, 18, 10, 11, 12,
 
 coordChangeMat = np.array([[1., 0., 0.], [0, -1., 0.], [0., 0., -1.]], dtype=np.float32)
 
+# Train
+base_info_train = pickle.load(open(os.path.join(dataset_path, 'handoccnet_train/2d_repro_ho3d_style_hocc_cleaned.pkl'), 'rb'))
+set_list_train = list(base_info_train.keys())
+# Validation:
+base_info_validation = pickle.load(open(os.path.join(dataset_path, 'handoccnet_train/2d_repro_ho3d_style_hocc_cleaned.pkl'), 'rb'))
+set_list_validation = list(base_info_validation.keys())
+# Evaluation
+base_info_evaluation = pickle.load(open(os.path.join(dataset_path, 'handoccnet_train/2d_repro_ho3d_style_test_cleaned.pkl'), 'rb'))
+set_list_evaluation = list(base_info_evaluation.keys())
+
 def fit_scaler(arr, k):
 
     scaler = MinMaxScaler()
@@ -164,7 +174,7 @@ def load_mesh_from_manolayer(fullpose, beta, trans, mano_layer):
 
 def transform_annotations(data, mano_layer, subset='train'):
     pass
-    return hand_object3d, hand_object2d, mesh3d, mesh2d
+    # return hand_object3d, hand_object2d, mesh3d, mesh2d
 
 
 def load_annotations(data, mano_layer, subset='train'):
@@ -242,24 +252,28 @@ if __name__ == '__main__':
             # Error in POV_SURGERY: some entries misses initial frame 00000
             # -> copied from 00001 entries
             file_number_meta_fixed = file_number if file_number!='00000' else '00001'
-            data_extended = dataset.get_item(subject, file_number_meta_fixed) # # Load additional data from POV-Surgery annotiations 
+            seqName_id = f'{subject}/{file_number_meta_fixed}'
+            if seqName_id in set_list_train:
+                data_extended = dataset.get_item(subject, file_number_meta_fixed) # # Load additional data from POV-Surgery annotiations 
             meta_file = os.path.join(meta, file_number_meta_fixed+'.pkl')
             img_path = os.path.join(rgb, rgb_file)        
             depth_path = os.path.join(depth, file_number+'.png')        
             
-            try:
-                data = np.load(meta_file, allow_pickle=True)
-            except:
-                print(f'🟠 Problem with file {meta_file}, file skipped')
-                count += 1
+            # try:
+            data = np.load(meta_file, allow_pickle=True)
+            # except:
+            #     print(f'🟠 Problem with file {meta_file}, file skipped')
+            #     count += 1
 
-            if data['handJoints3D'] is None:
+            if 'handJoints3D' in data and data['handJoints3D'] is None:
                 # Load previous frame's data if data is missing
                 # count += 1
                 continue
             else:
                 data = transform_annotations(data, mano_layer) # make them compatible with HO-3D style
-                hand_object3d, hand_object2d, mesh3d, mesh2d = load_annotations(data, mano_layer)
+                # hand_object3d, hand_object2d, mesh3d, mesh2d = load_annotations(data, mano_layer) DEBUG
+                # DEBUG
+                hand_object2d, hand_object3d, mesh3d, mesh2d = 0, 0, 0, 0
 
       
             values = [img_path, depth_path, hand_object2d, hand_object3d, mesh3d, mesh2d]

@@ -192,11 +192,11 @@ class POVSURGERY(torch.utils.data.Dataset):
             sample["id"] = id
             if self.mode == 'train':
                 # TODO: DEBUG
-                print('\n-------------- DEBUG --------------')
-                print(f'seqName_id: {seqName_id}')
-                print(f'Is key "{seqName_id}" present: {seqName_id in self.base_info}') 
-                print(f'Possible keys:\n{sorted(set([x for x in self.base_info.keys() if seqName in x]))}')   
-                print('-----------------------------------')   
+                # print('\n-------------- DEBUG --------------')
+                # print(f'seqName_id: {seqName_id}')
+                # print(f'Is key "{seqName_id}" present: {seqName_id in self.base_info}') 
+                # print(f'Possible keys:\n{sorted(set([x for x in self.base_info.keys() if seqName in x]))}')   
+                # print('-----------------------------------')   
                 joints_uv_temp = self.base_info[seqName_id]['joints_uv']
                 p2d_temp = self.base_info[seqName_id]['p2d']
                 K = np.array([[1198.4395, 0.0000, 960.0000], [0.0000, 1198.4395, 175.2000], [0.0000, 0.0000, 1.0000]])
