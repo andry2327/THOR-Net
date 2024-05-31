@@ -272,14 +272,11 @@ if __name__ == '__main__':
                 continue
             else:
                 if data_extended:
-                    # data.update(data_extended[0]) # img
-                    # data.update(data_extended[1]) # seqName, id, bbox_hand, bbox_obj, mano_param, cam_intr, joints2d, all_addition, all_addition, rot_aug
-                    # data.update(data_extended[2]) # root_joint_cam
                     data = {**data, **data_extended[0], **data_extended[1], **data_extended[2]}
-                data = transform_annotations(data, mano_layer) # make them compatible with HO-3D style
-                # hand_object3d, hand_object2d, mesh3d, mesh2d = load_annotations(data, mano_layer)
+e                     data = transform_annotations(data, mano_layer) # make them compatible with HO-3D style and fields needed
+                hand_object3d, hand_object2d, mesh3d, mesh2d = load_annotations(data, mano_layer)
                 # DEBUG
-                hand_object2d, hand_object3d, mesh3d, mesh2d = 0, 0, 0, 0
+                # hand_object2d, hand_object3d, mesh3d, mesh2d = 0, 0, 0, 0
 
       
             values = [img_path, depth_path, hand_object2d, hand_object3d, mesh3d, mesh2d]
