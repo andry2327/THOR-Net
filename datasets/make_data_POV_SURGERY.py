@@ -253,6 +253,7 @@ if __name__ == '__main__':
             # -> copied from 00001 entries
             file_number_meta_fixed = file_number if file_number!='00000' else '00001'
             seqName_id = f'{subject}/{file_number_meta_fixed}'
+            data_extended = None
             if seqName_id in set_list_train:
                 data_extended = dataset.get_item(subject, file_number_meta_fixed) # # Load additional data from POV-Surgery annotiations 
             meta_file = os.path.join(meta, file_number_meta_fixed+'.pkl')
@@ -270,8 +271,13 @@ if __name__ == '__main__':
                 # count += 1
                 continue
             else:
+                if data_extended:
+                    # data.update(data_extended[0]) # img
+                    # data.update(data_extended[1]) # seqName, id, bbox_hand, bbox_obj, mano_param, cam_intr, joints2d, all_addition, all_addition, rot_aug
+                    # data.update(data_extended[2]) # root_joint_cam
+                    data = {**data, **data_extended[0], **data_extended[1], **data_extended[2]}
                 data = transform_annotations(data, mano_layer) # make them compatible with HO-3D style
-                # hand_object3d, hand_object2d, mesh3d, mesh2d = load_annotations(data, mano_layer) DEBUG
+                # hand_object3d, hand_object2d, mesh3d, mesh2d = load_annotations(data, mano_layer)
                 # DEBUG
                 hand_object2d, hand_object3d, mesh3d, mesh2d = 0, 0, 0, 0
 
