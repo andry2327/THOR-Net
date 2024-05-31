@@ -34,6 +34,8 @@ YCBModelsDir = args.YCBModelsDir
 dataset_path = args.dataset_path
 mano_root = args.mano_root'''
 
+BASE_DATA_FILES_PATH = '/content/drive/MyDrive/Thesis/POV_Surgery/data'
+
 # DEBUG
 root = '/content/drive/MyDrive/Thesis/POV_Surgery_data'
 # YCBModelsDir = args.YCBModelsDir
@@ -173,26 +175,78 @@ def load_mesh_from_manolayer(fullpose, beta, trans, mano_layer):
     return hand_joints, hand_verts, mano_layer.th_faces
 
 def transform_annotations(data, mano_layer, subset='train'):
-    pass
+    return data
     # return hand_object3d, hand_object2d, mesh3d, mesh2d
+    
+import numpy as np
+import trimesh
+import scipy.io as sio
 
+def compute_3d_object_corners(annotations, object_type):
+    
+    SCALPEL_OFFSET = [0.04805371, 0, 0]
+    DISKPLACER_OFFSET = [0, 0.34612157, 0]
+    FRIEM_OFFSET = [0, 0.1145, 0]
+
+    object_file = os.path.join(BASE_DATA_FILES_PATH, 'tool_mesh', object_type + '.stl')
+    control_point_file = os.path.join(BASE_DATA_FILES_PATH, 'tool_mesh', 'tool_control_points.mat')
+    
+    mesh_object = trimesh.load(object_file)
+    control_point_mat = sio.loadmat(control_point_file)
+    
+    if 'diskplacer' in object_type:
+        mesh_object.vertices = mesh_object.vertices * 0.001 - np.array(DISKPLACER_OFFSET)
+        tool_control_point = control_point_mat['diskplacer_kp'] * 0.001 - np.array(DISKPLACER_OFFSET)
+    elif 'friem' in object_type:
+        mesh_object.vertices = mesh_object.vertices * 0.001 - np.array(FRIEM_OFFSET)
+        tool_control_point = control_point_mat['friem_kp'] * 0.001 - np.array(FRIEM_OFFSET)
+    elif 'scalpel' in object_type:
+        mesh_object.vertices = mesh_object.vertices * 0.001 - np.array(SCALPEL_OFFSET)
+        tool_control_point = control_point_mat['scalpel_kp'] * 0.001 - np.array(SCALPE_OFFSET)
+
+    base_object_rot = annotations['base_object_rot']
+    grab2world_R = annotations['grab2world_R']
+    grab2world_T = annotations['grab2world_T']
+    
+    # Apply the base object rotation
+    mesh_object.vertices = mesh_object.vertices @ base_object_rot.T
+    
+    # Apply the grab to world rotation and translation
+    mesh_object.vertices = mesh_object.vertices @ grab2world_R + grab2world_T
+    
+    # Extract the corners of the bounding box
+    bbox = mesh_object.bounding_box.bounds
+    corners = np.array([
+        [bbox[0, 0], bbox[0, 1], bbox[0, 2]],
+        [bbox[0, 0], bbox[0, 1], bbox[1, 2]],
+        [bbox[0, 0], bbox[1, 1], bbox[0, 2]],
+        [bbox[0, 0], bbox[1, 1], bbox[1, 2]],
+        [bbox[1, 0], bbox[0, 1], bbox[0, 2]],
+        [bbox[1, 0], bbox[0, 1], bbox[1, 2]],
+        [bbox[1, 0], bbox[1, 1], bbox[0, 2]],
+        [bbox[1, 0], bbox[1, 1], bbox[1, 2]]
+    ])
+    
+    return corners
 
 def load_annotations(data, mano_layer, subset='train'):
     
-    K = np.array([ # camera intrinsic parameters
-        [1198.4395, 0.0000, 960.0000], 
-        [0.0000, 1198.4395, 175.2000], 
-        [0.0000, 0.0000, 1.0000]
-        ])
-    
-    cam_intr = K
+    cam_intr = data['cam_intr']
 
-    if subset == 'train':
-        hand3d = data['handJoints3D'][reorder_idx]
-    else:
-        hand3d = data['handJoints3D'].reshape((1, -1))
+    # TODO
+    # if subset == 'train': 
+    #     hand3d = data['handJoints3D'][reorder_idx]
+    # else:
+    #     hand3d = data['handJoints3D'].reshape((1, -1))
 
-    obj_corners = np.zeros(shape=(8, 3)) # POV-Surgery do not have annotationfor 
+    if 'diskplacer' in data['seqName']: 
+        object_type = 'diskplacer'
+    elif 'friem' in data['seqName']: 
+        object_type = 'friem'
+    else: 
+        object_type = 'scalpel'
+        
+    obj_corners = compute_3d_object_corners(data, object_type)
     # print(data)
     # print(len(data['handBoundingBox']))
     # Convert to non-OpenGL coordinates and multiply by thousand to convert from m to mm
@@ -207,7 +261,7 @@ def load_annotations(data, mano_layer, subset='train'):
     mesh3d = np.array([])
     mesh2d = np.array([])
     if subset == 'train':
-        _, hand_mesh3d, _ = load_mesh_from_manolayer(data['handPose'], data['handBeta'], data['handTrans'], mano_layer)
+        _, hand_mesh3d, _ = load_mesh_from_manolayer(data['mano']['hand_pose'], data['mano']['betas'], data['mano']['translxz'], mano_layer)
         
         # Project from 3D world to Camera coordinates using the camera matrix    
         hand_mesh3d = hand_mesh3d.dot(coordChangeMat.T)
@@ -255,7 +309,7 @@ if __name__ == '__main__':
             seqName_id = f'{subject}/{file_number_meta_fixed}'
             data_extended = None
             if seqName_id in set_list_train:
-                data_extended = dataset.get_item(subject, file_number_meta_fixed) # # Load additional data from POV-Surgery annotiations 
+                data_extended = dataset.get_item(subject, file_number_meta_fixed) # Load additional data from POV-Surgery annotiations 
             meta_file = os.path.join(meta, file_number_meta_fixed+'.pkl')
             img_path = os.path.join(rgb, rgb_file)        
             depth_path = os.path.join(depth, file_number+'.png')        
@@ -273,12 +327,12 @@ if __name__ == '__main__':
             else:
                 if data_extended:
                     data = {**data, **data_extended[0], **data_extended[1], **data_extended[2]}
-e                     data = transform_annotations(data, mano_layer) # make them compatible with HO-3D style and fields needed
+                    data = transform_annotations(data, mano_layer) # make them compatible with HO-3D style and fields needed
+                # TODO: Load annotations also when data_extended is None
                 hand_object3d, hand_object2d, mesh3d, mesh2d = load_annotations(data, mano_layer)
                 # DEBUG
                 # hand_object2d, hand_object3d, mesh3d, mesh2d = 0, 0, 0, 0
 
-      
             values = [img_path, depth_path, hand_object2d, hand_object3d, mesh3d, mesh2d]
             if subject in val_list:
                 for i, name in enumerate(names):
