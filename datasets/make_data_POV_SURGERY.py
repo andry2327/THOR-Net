@@ -231,56 +231,70 @@ def compute_3d_object_corners(annotations, object_type):
 
 def load_annotations(data, mano_layer, subset='train'):
     
-    cam_intr = data['cam_intr']
+    hand_joints, hand_mesh3d, _ = load_mesh_from_manolayer(np.concatenate((data['mano']['global_orient'], data['mano']['hand_pose']), axis=1), data['mano']['betas'], data['mano']['transl'], mano_layer)
+    
+    if data['is_data_extended']:
+        cam_intr = data['cam_intr']
 
-    # TODO
-    # if subset == 'train': 
-    #     hand3d = data['handJoints3D'][reorder_idx]
-    # else:
-    #     hand3d = data['handJoints3D'].reshape((1, -1))
+    data['handJoints3D'] = hand_joints
+    if subset == 'train':
+        hand3d = data['handJoints3D'][reorder_idx] 
+    else:
+        hand3d = data['handJoints3D'].reshape((1, -1)) 
 
-    if 'diskplacer' in data['seqName']: 
-        object_type = 'diskplacer'
-    elif 'friem' in data['seqName']: 
-        object_type = 'friem'
-    else: 
-        object_type = 'scalpel'
-        
-    obj_corners = compute_3d_object_corners(data, object_type)
+    if data['is_data_extended']:
+        if 'diskplacer' in data['seqName']: 
+            object_type = 'diskplacer'
+        elif 'friem' in data['seqName']: 
+            object_type = 'friem'
+        else: 
+            object_type = 'scalpel'
+            
+        obj_corners = compute_3d_object_corners(data, object_type)
     # print(data)
     # print(len(data['handBoundingBox']))
     # Convert to non-OpenGL coordinates and multiply by thousand to convert from m to mm
-    hand_object3d = np.concatenate([hand3d, obj_corners]) * 1000
+    if data['is_data_extended']:
+        hand_object3d = np.concatenate([hand3d, obj_corners]) * 1000 
+    else:
+        hand_object3d = hand3d
     # hand_object3d = hand_object3d.dot(coordChangeMat.T)
 
     # Project from 3D world to Camera coordinates using the camera matrix  
-    hand_object3d = hand_object3d.dot(coordChangeMat.T)
-    hand_object_proj = cam_intr.dot(hand_object3d.transpose()).transpose()
-    hand_object2d = (hand_object_proj / hand_object_proj[:, 2:])[:, :2]
+    hand_object3d = hand_object3d.dot(coordChangeMat.T) 
+    hand_object2d = np.array([])
+    if data['is_data_extended']:
+        hand_object_proj = cam_intr.dot(hand_object3d.transpose()).transpose()
+        hand_object2d = (hand_object_proj / hand_object_proj[:, 2:])[:, :2]
 
     mesh3d = np.array([])
     mesh2d = np.array([])
+    
     if subset == 'train':
-        _, hand_mesh3d, _ = load_mesh_from_manolayer(data['mano']['hand_pose'], data['mano']['betas'], data['mano']['translxz'], mano_layer)
         
         # Project from 3D world to Camera coordinates using the camera matrix    
         hand_mesh3d = hand_mesh3d.dot(coordChangeMat.T)
-        hand_mesh_proj = cam_intr.dot(hand_mesh3d.transpose()).transpose()
-        hand_mesh2d = (hand_mesh_proj / hand_mesh_proj[:, 2:])[:, :2]
+        hand_mesh2d = np.array([])
+        if data['is_data_extended']:
+            hand_mesh_proj = cam_intr.dot(hand_mesh3d.transpose()).transpose()
+            hand_mesh2d = (hand_mesh_proj / hand_mesh_proj[:, 2:])[:, :2]
 
         # Do the same for the object
-        obj_mesh3d, _ = load_ycb_obj(YCBModelsDir, data['objName'], data['objRot'], data['objTrans'])
+        '''obj_mesh3d, _ = load_ycb_obj(YCBModelsDir, data['objName'], data['objRot'], data['objTrans'])
         obj_mesh_proj = cam_intr.dot(obj_mesh3d.transpose()).transpose()
         obj_mesh2d = (obj_mesh_proj / obj_mesh_proj[:, 2:])[:, :2]        
         
         mesh3d = np.concatenate((hand_mesh3d, obj_mesh3d), axis=0)
-        mesh2d = np.concatenate((hand_mesh2d, obj_mesh2d), axis=0) 
+        mesh2d = np.concatenate((hand_mesh2d, obj_mesh2d), axis=0) '''
+        
+        mesh3d = hand_mesh3d
+        mesh2d = hand_mesh2d
     
     return hand_object3d, hand_object2d, mesh3d, mesh2d
 
 if __name__ == '__main__':
 
-    mano_layer = ManoLayer(mano_root=mano_root, use_pca=False, ncomps=6, flat_hand_mean=True)
+    mano_layer = ManoLayer(mano_root=mano_root, use_pca=False, ncomps=45, flat_hand_mean=True)
     names = ['images', 'depths', 'points2d', 'points3d', 'mesh3d', 'mesh2d']
     file_dict_train = defaultdict(list)
     file_dict_val = defaultdict(list)
@@ -296,7 +310,15 @@ if __name__ == '__main__':
     count = 0
     print('Processing train split:')
     dataset = POVSURGERY(transforms.ToTensor(), "train")
-    for subject in tqdm(sorted(train_list)):
+    
+    # Progress bar
+    total = 0
+    for subject in train_list:
+        rgb = os.path.join(root, 'color', subject)
+        total += len(os.listdir(rgb))
+        
+    pbar = tqdm(total=total)
+    for subject in sorted(train_list):
         rgb = os.path.join(root, 'color', subject)
         depth = os.path.join(root, 'depth', subject)
         meta = os.path.join(root, 'annotation', subject)
@@ -316,6 +338,7 @@ if __name__ == '__main__':
             
             # try:
             data = np.load(meta_file, allow_pickle=True)
+            data['is_data_extended'] = False
             # except:
             #     print(f'🟠 Problem with file {meta_file}, file skipped')
             #     count += 1
@@ -326,9 +349,9 @@ if __name__ == '__main__':
                 continue
             else:
                 if data_extended:
-                    data = {**data, **data_extended[0], **data_extended[1], **data_extended[2]}
+                    data['is_data_extended'] = True
+                    data = {**data, **data_extended[0], **data_extended[1], **data_extended[2]} # extend data with additional annotations
                     data = transform_annotations(data, mano_layer) # make them compatible with HO-3D style and fields needed
-                # TODO: Load annotations also when data_extended is None
                 hand_object3d, hand_object2d, mesh3d, mesh2d = load_annotations(data, mano_layer)
                 # DEBUG
                 # hand_object2d, hand_object3d, mesh3d, mesh2d = 0, 0, 0, 0
@@ -340,6 +363,9 @@ if __name__ == '__main__':
             else:
                 for i, name in enumerate(names):
                     file_dict_train[name].append(values[i])
+            
+            pbar.update(1)
+    pbar.close()
 
     print('Total number of failures:', count)
     print("size of training dataset", len(file_dict_train['points2d']))
