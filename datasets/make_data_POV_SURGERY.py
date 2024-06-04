@@ -39,7 +39,7 @@ BASE_DATA_FILES_PATH = '/content/drive/MyDrive/Thesis/POV_Surgery/data'
 # DEBUG
 # root = '/content/drive/MyDrive/Thesis/POV_Surgery_data'
 # # YCBModelsDir = args.YCBModelsDir
-# dataset_path = '/content/drive/MyDrive/Thesis/POV_Surgery_data'
+# dataset_path = ''
 # mano_root = '/content/drive/MyDrive/Thesis/mano_v1_2/models'
 
 # Get original POV-Surgery splits 
@@ -53,13 +53,13 @@ reorder_idx = np.array([0, 13, 14, 15, 16, 1, 2, 3, 17, 4, 5, 6, 18, 10, 11, 12,
 coordChangeMat = np.array([[1., 0., 0.], [0, -1., 0.], [0., 0., -1.]], dtype=np.float32)
 
 # Train
-base_info_train = pickle.load(open(os.path.join(dataset_path, 'handoccnet_train/2d_repro_ho3d_style_hocc_cleaned.pkl'), 'rb'))
+base_info_train = pickle.load(open(os.path.join(root, 'handoccnet_train/2d_repro_ho3d_style_hocc_cleaned.pkl'), 'rb'))
 set_list_train = list(base_info_train.keys())
 # Validation:
-base_info_validation = pickle.load(open(os.path.join(dataset_path, 'handoccnet_train/2d_repro_ho3d_style_hocc_cleaned.pkl'), 'rb'))
+base_info_validation = pickle.load(open(os.path.join(root, 'handoccnet_train/2d_repro_ho3d_style_hocc_cleaned.pkl'), 'rb'))
 set_list_validation = list(base_info_validation.keys())
 # Evaluation
-base_info_evaluation = pickle.load(open(os.path.join(dataset_path, 'handoccnet_train/2d_repro_ho3d_style_test_cleaned.pkl'), 'rb'))
+base_info_evaluation = pickle.load(open(os.path.join(root, 'handoccnet_train/2d_repro_ho3d_style_test_cleaned.pkl'), 'rb'))
 set_list_evaluation = list(base_info_evaluation.keys())
 evaluation_list = list(set([x.split('/')[0] for x in set_list_evaluation]))
 
@@ -203,7 +203,7 @@ def compute_3d_object_corners(annotations, object_type):
         tool_control_point = control_point_mat['friem_kp'] * 0.001 - np.array(FRIEM_OFFSET)
     elif 'scalpel' in object_type:
         mesh_object.vertices = mesh_object.vertices * 0.001 - np.array(SCALPEL_OFFSET)
-        tool_control_point = control_point_mat['scalpel_kp'] * 0.001 - np.array(SCALPE_OFFSET)
+        tool_control_point = control_point_mat['scalpel_kp'] * 0.001 - np.array(SCALPEL_OFFSET)
 
     base_object_rot = annotations['base_object_rot']
     grab2world_R = annotations['grab2world_R']
