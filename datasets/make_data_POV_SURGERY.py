@@ -241,7 +241,8 @@ def load_annotations(data, mano_layer, subset='train'):
     if subset == 'train':
         hand3d = data['handJoints3D'][reorder_idx] 
     else:
-        hand3d = data['handJoints3D'].reshape((1, -1)) 
+        # hand3d = data['handJoints3D'].reshape((1, -1)) # TODO: to check
+        hand3d = data['handJoints3D']
 
     if data['is_data_extended']:
         if 'diskplacer' in data['seqName']: 
@@ -251,7 +252,7 @@ def load_annotations(data, mano_layer, subset='train'):
         else: 
             object_type = 'scalpel'
             
-        obj_corners = compute_3d_object_corners(data, object_type)
+        obj_corners = compute_3d_object_corners(data, object_type) # shape=(8, 3)
     # print(data)
     # print(len(data['handBoundingBox']))
     # Convert to non-OpenGL coordinates and multiply by thousand to convert from m to mm
@@ -310,7 +311,6 @@ if __name__ == '__main__':
 
     
     # # Training
-    '''count = 0
     print('Processing train split:')
     dataset = POVSURGERY(transforms.ToTensor(), "train")
     
@@ -371,7 +371,7 @@ if __name__ == '__main__':
             pbar.update(1)
     pbar.close()
 
-    print('Total number of failures:', count)
+    # print('Total number of failures:', count)
     print("size of training dataset", len(file_dict_train['points2d']))
     print("size of validation dataset", len(file_dict_val['points2d']))
 
@@ -404,13 +404,13 @@ if __name__ == '__main__':
 
     for k, v in file_dict_val.items():
         np.save(f'{dataset_path}/{k}-val.npy', np.array(v))
-        print(f'🟢 SAVED {dataset_path}/{k}-val.npy: shape={np.array(v).shape}') # DEBUG'''
+        print(f'🟢 SAVED {dataset_path}/{k}-val.npy: shape={np.array(v).shape}') # DEBUG
 
     file_dict_test = defaultdict(list)
     name_object_dict = {}
 
     # # Evaluation
-    count = 0
+    # count = 0
     print('Processing evaluation split:')
     dataset = POVSURGERY(transforms.ToTensor(), "evaluation")
     
@@ -473,4 +473,4 @@ if __name__ == '__main__':
 
 
     print("size of testing dataset", len(file_dict_test['points2d']))
-    print("total testing samples:", count, "percentage:", len(file_dict_test['points2d'])/count)
+    # print("total testing samples:", count, "percentage:", len(file_dict_test['points2d'])/count)
