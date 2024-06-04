@@ -22,7 +22,7 @@ from pov_surgery_utils.pov_surgery_dataset_split import PovSurgerySplits
 parser = argparse.ArgumentParser()
 
 # Loading dataset    
-'''parser.add_argument("--root", required=True, help="HO3D dataset folder")
+parser.add_argument("--root", required=True, help="HO3D dataset folder")
 parser.add_argument("--mano_root", required=True, help="Path to MANO models")
 parser.add_argument("--YCBModelsDir", default='./datasets/ycb_models', help="Path to YCB object meshes folder")
 parser.add_argument("--dataset_path", default='./datasets/ho3d', help="Where to store dataset files")
@@ -32,15 +32,15 @@ args = parser.parse_args()
 root = args.root
 YCBModelsDir = args.YCBModelsDir
 dataset_path = args.dataset_path
-mano_root = args.mano_root'''
+mano_root = args.mano_root
 
 BASE_DATA_FILES_PATH = '/content/drive/MyDrive/Thesis/POV_Surgery/data'
 
 # DEBUG
-root = '/content/drive/MyDrive/Thesis/POV_Surgery_data'
-# YCBModelsDir = args.YCBModelsDir
-dataset_path = '/content/drive/MyDrive/Thesis/POV_Surgery_data'
-mano_root = '/content/drive/MyDrive/Thesis/mano_v1_2/models'
+# root = '/content/drive/MyDrive/Thesis/POV_Surgery_data'
+# # YCBModelsDir = args.YCBModelsDir
+# dataset_path = '/content/drive/MyDrive/Thesis/POV_Surgery_data'
+# mano_root = '/content/drive/MyDrive/Thesis/mano_v1_2/models'
 
 # Get original POV-Surgery splits 
 train_list, test_list = PovSurgerySplits().get_splits()
