@@ -61,6 +61,7 @@ set_list_validation = list(base_info_validation.keys())
 # Evaluation
 base_info_evaluation = pickle.load(open(os.path.join(dataset_path, 'handoccnet_train/2d_repro_ho3d_style_test_cleaned.pkl'), 'rb'))
 set_list_evaluation = list(base_info_evaluation.keys())
+evaluation_list = list(set([x.split('/')[0] for x in set_list_evaluation]))
 
 def fit_scaler(arr, k):
 
@@ -307,7 +308,9 @@ if __name__ == '__main__':
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-    count = 0
+    
+    # # Training
+    '''count = 0
     print('Processing train split:')
     dataset = POVSURGERY(transforms.ToTensor(), "train")
     
@@ -357,6 +360,7 @@ if __name__ == '__main__':
                 # hand_object2d, hand_object3d, mesh3d, mesh2d = 0, 0, 0, 0
 
             values = [img_path, depth_path, hand_object2d, hand_object3d, mesh3d, mesh2d]
+            
             if subject in val_list:
                 for i, name in enumerate(names):
                     file_dict_val[name].append(values[i])
@@ -396,9 +400,11 @@ if __name__ == '__main__':
 
     for k, v in file_dict_train.items():
         np.save(f'{dataset_path}/{k}-train.npy', np.array(v))
+        print(f'🟢 SAVED {dataset_path}/{k}-train.npy: shape={np.array(v).shape}') # DEBUG
 
     for k, v in file_dict_val.items():
         np.save(f'{dataset_path}/{k}-val.npy', np.array(v))
+        print(f'🟢 SAVED {dataset_path}/{k}-val.npy: shape={np.array(v).shape}') # DEBUG'''
 
     file_dict_test = defaultdict(list)
     name_object_dict = {}
@@ -407,26 +413,48 @@ if __name__ == '__main__':
     count = 0
     print('Processing evaluation split:')
     dataset = POVSURGERY(transforms.ToTensor(), "evaluation")
-    for subject in tqdm(os.listdir(os.path.join(evaluation))):
-        s_path = os.path.join(evaluation, subject)
-        rgb = os.path.join(s_path, 'rgb')
-        depth = os.path.join(s_path, 'depth')
-        meta = os.path.join(s_path, 'meta')
+    
+    # Progress bar
+    total = 0
+    for subject in evaluation_list:
+        rgb = os.path.join(root, 'color', subject)
+        try:
+            total += len(os.listdir(rgb))
+        except:
+            print(f'ERROR: {rgb}')
+        
+    pbar = tqdm(total=total)
+    for subject in sorted(evaluation_list):
+        rgb = os.path.join(root, 'color', subject)
+        depth = os.path.join(root, 'depth', subject)
+        meta = os.path.join(root, 'annotation', subject)
             
-        for rgb_file in os.listdir(rgb):
+        for rgb_file in sorted(os.listdir(rgb)):
             file_number = rgb_file.split('.')[0]
+            # Error in POV_SURGERY: some entries misses initial frame 00000
+            # -> copied from 00001 entries
+            file_number_meta_fixed = file_number if file_number!='00000' else '00001'
+            seqName_id = f'{subject}/{file_number_meta_fixed}'
+            data_extended = None
+            if seqName_id in set_list_evaluation:
+                data_extended = dataset.get_item(subject, file_number_meta_fixed) # Load additional data from POV-Surgery annotiations 
+            meta_file = os.path.join(meta, file_number_meta_fixed+'.pkl')
             img_path = os.path.join(rgb, rgb_file)
             depth_path = os.path.join(depth, file_number+'.png')  
-            meta_file = os.path.join(meta, file_number+'.pkl')
-            count+=1
-            try:
-                data = np.load(meta_file, allow_pickle=True)
-            except:
-                print(f'🟠 Problem with file {meta_file}, file skipped')
-            if data['handJoints3D'] is None:
+            
+            # try:
+            data = np.load(meta_file, allow_pickle=True)
+            data['is_data_extended'] = False
+            # except:
+                # print(f'🟠 Problem with file {meta_file}, file skipped')
+            if 'handJoints3D' in data and data['handJoints3D'] is None:
                 continue
                 # hand_object3d, hand_object2d, mesh3d, mesh2d = last_hand_object3d, last_hand_object2d, last_mesh3d, last_mesh2d
             else:
+                if data_extended:
+                    data['is_data_extended'] = True
+                    data = {**data, **data_extended[0], **data_extended[1], **data_extended[2]} # extend data with additional annotations
+                    data = transform_annotations(data, mano_layer) # make them compatible with HO-3D style and fields needed
                 hand_object3d, hand_object2d, mesh3d, mesh2d = load_annotations(data, mano_layer, subset='test')
                 # last_hand_object3d, last_hand_object2d, last_mesh3d, last_mesh2d = hand_object3d, hand_object2d, mesh3d, mesh2d
                 # print(hand_object3d.shape, hand_object2d.shape, mesh3d.shape, mesh2d.shape)
@@ -435,9 +463,14 @@ if __name__ == '__main__':
             
             for i, name in enumerate(names):
                 file_dict_test[name].append(values[i])
+                
+            pbar.update(1)
+    pbar.close()
 
     for k, v in file_dict_test.items():
         np.save(f'{dataset_path}/{k}-test.npy', np.array(v))
+        print(f'🟢 SAVED {dataset_path}/{k}-test.npy: shape={np.array(v).shape}') # DEBUG
+
 
     print("size of testing dataset", len(file_dict_test['points2d']))
     print("total testing samples:", count, "percentage:", len(file_dict_test['points2d'])/count)
