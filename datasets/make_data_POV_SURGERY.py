@@ -22,7 +22,7 @@ from pov_surgery_utils.pov_surgery_dataset_split import PovSurgerySplits
 parser = argparse.ArgumentParser()
 
 # Loading dataset    
-parser.add_argument("--root", required=True, help="HO3D dataset folder")
+'''parser.add_argument("--root", required=True, help="HO3D dataset folder")
 parser.add_argument("--mano_root", required=True, help="Path to MANO models")
 parser.add_argument("--YCBModelsDir", default='./datasets/ycb_models', help="Path to YCB object meshes folder")
 parser.add_argument("--dataset_path", default='./datasets/ho3d', help="Where to store dataset files")
@@ -32,15 +32,15 @@ args = parser.parse_args()
 root = args.root
 YCBModelsDir = args.YCBModelsDir
 dataset_path = args.dataset_path
-mano_root = args.mano_root
+mano_root = args.mano_root'''
 
 BASE_DATA_FILES_PATH = '/content/drive/MyDrive/Thesis/POV_Surgery/data'
 
 # DEBUG
-# root = '/content/drive/MyDrive/Thesis/POV_Surgery_data'
-# # YCBModelsDir = args.YCBModelsDir
-# dataset_path = ''
-# mano_root = '/content/drive/MyDrive/Thesis/mano_v1_2/models'
+root = '/content/drive/MyDrive/Thesis/POV_Surgery_data'
+# YCBModelsDir = args.YCBModelsDir
+dataset_path = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/povsurgery'
+mano_root = '/content/drive/MyDrive/Thesis/mano_v1_2/models'
 
 # Get original POV-Surgery splits 
 train_list, test_list = PovSurgerySplits().get_splits()
@@ -62,6 +62,16 @@ set_list_validation = list(base_info_validation.keys())
 base_info_evaluation = pickle.load(open(os.path.join(root, 'handoccnet_train/2d_repro_ho3d_style_test_cleaned.pkl'), 'rb'))
 set_list_evaluation = list(base_info_evaluation.keys())
 evaluation_list = list(set([x.split('/')[0] for x in set_list_evaluation]))
+
+print(f'Dataset: {len(PovSurgerySplits().DATASET_ENTRIES_NAMES)}')
+print()
+print(f'train_list - {len(train_list)} items:')
+print(train_list)
+print(f'val_list - {len(val_list)} items:')
+print(val_list)
+print(f'evaluation_list - {len(evaluation_list)} items:')
+print(evaluation_list)
+print()
 
 def fit_scaler(arr, k):
 
@@ -321,6 +331,7 @@ if __name__ == '__main__':
         total += len(os.listdir(rgb))
         
     pbar = tqdm(total=total)
+    error_count = 0
     for subject in sorted(train_list):
         rgb = os.path.join(root, 'color', subject)
         depth = os.path.join(root, 'depth', subject)
@@ -339,9 +350,12 @@ if __name__ == '__main__':
             img_path = os.path.join(rgb, rgb_file)        
             depth_path = os.path.join(depth, file_number+'.png')        
             
-            # try:
-            data = np.load(meta_file, allow_pickle=True)
-            data['is_data_extended'] = False
+            try:
+                data = np.load(meta_file, allow_pickle=True)
+                data['is_data_extended'] = False
+            except:
+                #file error, copied from previous frame
+                error_count += 1
             # except:
             #     print(f'🟠 Problem with file {meta_file}, file skipped')
             #     count += 1
@@ -372,8 +386,9 @@ if __name__ == '__main__':
     pbar.close()
 
     # print('Total number of failures:', count)
-    print("size of training dataset", len(file_dict_train['points2d']))
-    print("size of validation dataset", len(file_dict_val['points2d']))
+    print("`Size of training dataset", len(file_dict_train['points2d']))
+    print("Size of validation dataset", len(file_dict_val['points2d']))
+    print(f"# errors: {error_count} ({error_count/len(file_dict_train['points2d']):.2%})")
 
     # Appending all possible 2D points to normalize
     # points_2d_lists = [file_dict_train['hand_mesh2d'], file_dict_train['points2d'], file_dict_val['hand_mesh2d'], file_dict_val['points2d']]
@@ -399,13 +414,14 @@ if __name__ == '__main__':
 
 
     for k, v in file_dict_train.items():
-        np.save(f'{dataset_path}/{k}-train.npy', np.array(v))
+        np.save(f'{dataset_path}/{k}-train.npy', np.array(v, dtype=object))
         print(f'🟢 SAVED {dataset_path}/{k}-train.npy: shape={np.array(v).shape}') # DEBUG
 
     for k, v in file_dict_val.items():
-        np.save(f'{dataset_path}/{k}-val.npy', np.array(v))
+        np.save(f'{dataset_path}/{k}-val.npy', np.array(v, dtype=object))
         print(f'🟢 SAVED {dataset_path}/{k}-val.npy: shape={np.array(v).shape}') # DEBUG
 
+    print()
     file_dict_test = defaultdict(list)
     name_object_dict = {}
 
@@ -424,6 +440,7 @@ if __name__ == '__main__':
             print(f'ERROR: {rgb}')
         
     pbar = tqdm(total=total)
+    error_count = 0
     for subject in sorted(evaluation_list):
         rgb = os.path.join(root, 'color', subject)
         depth = os.path.join(root, 'depth', subject)
@@ -442,10 +459,11 @@ if __name__ == '__main__':
             img_path = os.path.join(rgb, rgb_file)
             depth_path = os.path.join(depth, file_number+'.png')  
             
-            # try:
-            data = np.load(meta_file, allow_pickle=True)
-            data['is_data_extended'] = False
-            # except:
+            try:
+                data = np.load(meta_file, allow_pickle=True)
+                data['is_data_extended'] = False
+            except:
+                error_count += 1
                 # print(f'🟠 Problem with file {meta_file}, file skipped')
             if 'handJoints3D' in data and data['handJoints3D'] is None:
                 continue
@@ -468,9 +486,10 @@ if __name__ == '__main__':
     pbar.close()
 
     for k, v in file_dict_test.items():
-        np.save(f'{dataset_path}/{k}-test.npy', np.array(v))
+        np.save(f'{dataset_path}/{k}-test.npy', np.array(v, dtype=object))
         print(f'🟢 SAVED {dataset_path}/{k}-test.npy: shape={np.array(v).shape}') # DEBUG
 
 
-    print("size of testing dataset", len(file_dict_test['points2d']))
+    print("Size of testing dataset", len(file_dict_test['points2d']))
+    print(f"# errors: {error_count} ({error_count/len(file_dict_train['points2d']):.2%})")
     # print("total testing samples:", count, "percentage:", len(file_dict_test['points2d'])/count)
