@@ -45,7 +45,6 @@ mano_root = '/content/drive/MyDrive/Thesis/mano_v1_2/models'
 # Get original POV-Surgery splits 
 train_list, test_list = PovSurgerySplits().get_splits()
 val_list = ["d_scalpel_1", "r_scalpel_3", "r_diskplacer_5", "s_friem_2", "s_scalpel_3"]
-train_list = list(set(train_list) - set(val_list))
 
 # Load object mesh
 reorder_idx = np.array([0, 13, 14, 15, 16, 1, 2, 3, 17, 4, 5, 6, 18, 10, 11, 12, 19, 7, 8, 9, 20])
@@ -63,12 +62,29 @@ base_info_evaluation = pickle.load(open(os.path.join(root, 'handoccnet_train/2d_
 set_list_evaluation = list(base_info_evaluation.keys())
 evaluation_list = list(set([x.split('/')[0] for x in set_list_evaluation]))
 
+d = {} # DEBUG
+for key in base_info_evaluation.keys(): # DEBUG
+    file_name, frame = key.split('/') 
+    if file_name in d.keys():
+        d[file_name].append(frame)
+    else:   
+        d[file_name] = [frame]
+d = {key: d[key] for key in sorted(d)}
+for k, v in d.items():
+    print(f'{k}: {v[0]} ... {v[-1]}')
+
+# DEBUG
+val_list = ["d_scalpel_1", 'r_diskplacer_5', 'i_friem_2'] # DEBUG
+train_list = ['s_diskplacer_2', 'm_scalpel_1']
+train_list.extend(val_list) # DEBUG
+evaluation_list = ['i_scalpel_1', 'r_friem_3', 'R2_s_diskplacer_1'] # DEBUG
+
 print(f'Dataset: {len(PovSurgerySplits().DATASET_ENTRIES_NAMES)}')
 print()
-print(f'train_list - {len(train_list)} items:')
+print(f'train_list (with val_list) - {len(train_list)} items:')
 print(train_list)
-print(f'val_list - {len(val_list)} items:')
-print(val_list)
+print(f'    val_list - {len(val_list)} items:')
+print(f'    {val_list}')
 print(f'evaluation_list - {len(evaluation_list)} items:')
 print(evaluation_list)
 print()
@@ -312,23 +328,22 @@ if __name__ == '__main__':
     file_dict_val = defaultdict(list)
     name_object_dict = {}
 
-    val_list = ["i_friem_1", "s_scalpel_4", "d_scalpel_1", "r_scalpel_3", "r_diskplacer_5", "s_friem_2", "s_scalpel_3"]
-    train_list = list(set(train_list) - set(val_list))
-
     directory = f'val_size_{len(val_list)}'
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-    
+
     # # Training
     print('Processing train split:')
     dataset = POVSURGERY(transforms.ToTensor(), "train")
     
     # Progress bar
     total = 0
+    slice = []
     for subject in train_list:
         rgb = os.path.join(root, 'color', subject)
-        total += len(os.listdir(rgb))
+        slice = [int(x) for x in np.linspace(0, len(os.listdir(rgb))-1, 20)] # DEBUG
+        total += len(np.array(os.listdir(rgb))[slice]) # DEBUG
         
     pbar = tqdm(total=total)
     error_count = 0
@@ -337,7 +352,8 @@ if __name__ == '__main__':
         depth = os.path.join(root, 'depth', subject)
         meta = os.path.join(root, 'annotation', subject)
         
-        for rgb_file in sorted(os.listdir(rgb)):
+        slice = [int(x) for x in np.linspace(0, len(os.listdir(rgb))-1, 20)] # DEBUG
+        for rgb_file in sorted(np.array(os.listdir(rgb))[slice]): # DEBUG
             file_number = rgb_file.split('.')[0]
             # Error in POV_SURGERY: some entries misses initial frame 00000
             # -> copied from 00001 entries
@@ -370,8 +386,6 @@ if __name__ == '__main__':
                     data = {**data, **data_extended[0], **data_extended[1], **data_extended[2]} # extend data with additional annotations
                     data = transform_annotations(data, mano_layer) # make them compatible with HO-3D style and fields needed
                 hand_object3d, hand_object2d, mesh3d, mesh2d = load_annotations(data, mano_layer)
-                # DEBUG
-                # hand_object2d, hand_object3d, mesh3d, mesh2d = 0, 0, 0, 0
 
             values = [img_path, depth_path, hand_object2d, hand_object3d, mesh3d, mesh2d]
             
