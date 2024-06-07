@@ -98,6 +98,13 @@ print(evaluation_list)
 print('-'*30)
 print()
 
+def save_as_npy(file_path, data):
+    np.save(file_path, np.array(data, dtype=object))
+
+def save_as_pkl(file_path, data):
+    with open(file_path, 'wb') as f:
+        pickle.dump(data, f)
+
 def fit_scaler(arr, k):
 
     scaler = MinMaxScaler()
@@ -438,12 +445,32 @@ if __name__ == '__main__':
 
 
     for k, v in file_dict_train.items():
-        np.save(f'{dataset_path}/{k}-train.npy', np.array(v, dtype=object))
-        print(f'🟢 SAVED {dataset_path}/{k}-train.npy: shape={np.array(v).shape}') 
+        npy_path = f'{dataset_path}/{k}-train.npy'
+        pkl_path = f'{dataset_path}/{k}-train.pkl'
+        try:
+            save_as_npy(npy_path, v)
+            print(f'🟢 SAVED {npy_path}: shape={np.array(v).shape}')
+        except Exception as e:
+            print(f'🔴 ERROR saving {npy_path} as .npy: {e}')
+            try:
+                save_as_pkl(pkl_path, v)
+                print(f'🟢 SAVED {pkl_path}')
+            except Exception as e:
+                print(f'🔴 ERROR saving {pkl_path} as .pkl: {e}')
 
     for k, v in file_dict_val.items():
-        np.save(f'{dataset_path}/{k}-val.npy', np.array(v, dtype=object))
-        print(f'🟢 SAVED {dataset_path}/{k}-val.npy: shape={np.array(v).shape}') 
+        npy_path = f'{dataset_path}/{k}-val.npy'
+        pkl_path = f'{dataset_path}/{k}-val.pkl'
+        try:
+            save_as_npy(npy_path, v)
+            print(f'🟢 SAVED {npy_path}: shape={np.array(v).shape}')
+        except Exception as e:
+            print(f'🔴 ERROR saving {npy_path} as .npy: {e}')
+            try:
+                save_as_pkl(pkl_path, v)
+                print(f'🟢 SAVED {pkl_path}')
+            except Exception as e:
+                print(f'🔴 ERROR saving {pkl_path} as .pkl: {e}')
 
     print()
     file_dict_test = defaultdict(list)
@@ -520,5 +547,15 @@ if __name__ == '__main__':
     # print("total testing samples:", count, "percentage:", len(file_dict_test['points2d'])/count)
     
     for k, v in file_dict_test.items():
-        np.save(f'{dataset_path}/{k}-test.npy', np.array(v, dtype=object))
-        print(f'🟢 SAVED {dataset_path}/{k}-test.npy: shape={np.array(v).shape}')
+        npy_path = f'{dataset_path}/{k}-test.npy'
+        pkl_path = f'{dataset_path}/{k}-test.pkl'
+        try:
+            save_as_npy(npy_path, v)
+            print(f'🟢 SAVED {npy_path}: shape={np.array(v).shape}')
+        except Exception as e:
+            print(f'🔴 ERROR saving {npy_path} as .npy: {e}')
+            try:
+                save_as_pkl(pkl_path, v)
+                print(f'🟢 SAVED {pkl_path}')
+            except Exception as e:
+                print(f'🔴 ERROR saving {pkl_path} as .pkl: {e}')

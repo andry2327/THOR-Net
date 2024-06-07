@@ -40,3 +40,4 @@ datasets/pov_surgery_utils/utils/__pycache__/vis.cpython-37.pyc
 *.pyc
 myfile.txt
 sample.json
+.DS_Store
