@@ -542,7 +542,7 @@ if __name__ == '__main__':
     pbar.close()
 
     print("Size of testing dataset", len(file_dict_test['points2d']))
-    print(f"# errors: {error_count} ({error_count/len(file_dict_train['points2d']):.2%})")
+    print(f"# errors: {error_count} ({error_count/len(file_dict_test['points2d']):.2%})")
     print(f"# errors frame annotations (data_extended): {error_data_extended_count}/{total} ({error_data_extended_count/total:.2%})")
     # print("total testing samples:", count, "percentage:", len(file_dict_test['points2d'])/count)
     
@@ -550,7 +550,7 @@ if __name__ == '__main__':
         npy_path = f'{dataset_path}/{k}-test.npy'
         pkl_path = f'{dataset_path}/{k}-test.pkl'
         try:
-            save_as_npy(npy_path, v)
+            save_as_npy(npy_path, v)    
             print(f'🟢 SAVED {npy_path}: shape={np.array(v).shape}')
         except Exception as e:
             print(f'🔴 ERROR saving {npy_path} as .npy: {e}')
