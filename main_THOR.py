@@ -24,6 +24,18 @@ from models.thor_net import create_thor
 torch.multiprocessing.set_sharing_strategy('file_system')
 
 args = parse_args_function()
+# print(f'args:')
+# for arg, value in vars(args).items():
+#     print(f"{arg}: {value}", end=' | ')
+# print('-'*30)
+
+# DEBUG
+args.dataset_name = 'povsurgery' # DEBUG
+args.root = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/povsurgery/object_True' # DEBUG
+args.output_file = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_HO3D/model-' # DEBUG
+args.batch_size = 1 # DEBUG
+args.num_iteration = 3 # DEBUG
+args.object = False # DEBUG
 
 # Define device
 device = torch.device(f'cuda:{args.gpu_number[0]}' if torch.cuda.is_available() else 'cpu')
@@ -53,7 +65,7 @@ if args.dataset_name.lower() == 'h2o':
     val_input_tar_lists, val_annotation_tar_files = load_tar_split(h2o_data_dir, 'val')   
     num_classes = 4
     graph_input = 'coords'
-else: # i.e. HO3D
+else: # i.e. HO3D, POV-Surgery
     trainloader = create_loader(args.dataset_name, args.root, 'train', batch_size=args.batch_size, num_kps3d=num_kps3d, num_verts=num_verts)
     valloader = create_loader(args.dataset_name, args.root, 'val', batch_size=args.batch_size)
     num_classes = 2 

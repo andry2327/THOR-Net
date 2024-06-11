@@ -25,12 +25,16 @@ class Dataset(data.Dataset):
 
         # TODO: add depth transformation
         self.load_set = load_set  # 'train','val','test'
-        self.images = np.load(os.path.join(root, 'images-%s.npy' % self.load_set))
-        self.points2d = np.load(os.path.join(root, 'points2d-%s.npy' % self.load_set))
-        self.points3d = np.load(os.path.join(root, 'points3d-%s.npy' % self.load_set))
+        self.images = np.load(os.path.join(root, 'images-%s.npy' % self.load_set), allow_pickle=True)
+        self.points2d = np.load(os.path.join(root, 'points2d-%s.npy' % self.load_set), allow_pickle=True)
+        self.points2d = self.points2d.astype(np.float64) if self.points2d.dtype == object else self.points2d
+        self.points3d = np.load(os.path.join(root, 'points3d-%s.npy' % self.load_set), allow_pickle=True)
+        self.points3d = self.points3d.astype(np.float64) if self.points3d.dtype == object else self.points3d
 
-        self.mesh2d = np.load(os.path.join(root, 'mesh2d-%s.npy' % self.load_set))
-        self.mesh3d = np.load(os.path.join(root, 'mesh3d-%s.npy' % self.load_set))
+        self.mesh2d = np.load(os.path.join(root, 'mesh2d-%s.npy' % self.load_set), allow_pickle=True)
+        self.mesh2d = self.mesh2d.astype(np.float64) if self.mesh2d.dtype == object else self.mesh2d
+        self.mesh3d = np.load(os.path.join(root, 'mesh3d-%s.npy' % self.load_set), allow_pickle=True)
+        self.mesh3d = self.mesh3d.astype(np.float64) if self.mesh3d.dtype == object else self.mesh3d
 
     def __getitem__(self, index):
         """
