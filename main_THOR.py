@@ -161,6 +161,7 @@ for epoch in range(start, args.num_iterations):  # loop over the dataset multipl
     if (epoch+1) % args.snapshot_epoch == 0:
         torch.save(model.state_dict(), args.output_file+str(epoch+1)+'.pkl')
         np.save(args.output_file+str(epoch+1)+'-losses.npy', np.array(losses))
+        logging.info(f'Model checkpoint (epoch {epoch+1}) saved in "{args.output_file}"')
 
     if (epoch+1) % args.val_epoch == 0:
         val_loss2d = 0.0
