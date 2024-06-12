@@ -12,6 +12,8 @@ import torch.optim as optim
 import logging
 import sys
 import os
+import datetime
+from tqdm import tqdm
 
 from utils.options import parse_args_function
 from utils.utils import freeze_component, calculate_keypoints, create_loader
@@ -24,18 +26,19 @@ from models.thor_net import create_thor
 torch.multiprocessing.set_sharing_strategy('file_system')
 
 args = parse_args_function()
+output_folder = args.output_file[:-6]
 # print(f'args:')
 # for arg, value in vars(args).items():
 #     print(f"{arg}: {value}", end=' | ')
 # print('-'*30)
 
-# DEBUG
-args.dataset_name = 'povsurgery' # DEBUG
-args.root = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/povsurgery/object_True' # DEBUG
-args.output_file = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_HO3D/model-' # DEBUG
-args.batch_size = 1 # DEBUG
-args.num_iteration = 3 # DEBUG
-args.object = False # DEBUG
+
+# args.dataset_name = 'povsurgery' 
+# args.root = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/povsurgery/object_True' 
+# args.output_file = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_HO3D/model-' 
+# args.batch_size = 1
+# args.num_iteration = 3
+# args.object = False 
 
 # Define device
 device = torch.device(f'cuda:{args.gpu_number[0]}' if torch.cuda.is_available() else 'cpu')
@@ -49,11 +52,25 @@ num_kps2d, num_kps3d, num_verts = calculate_keypoints(args.dataset_name, args.ob
 """ Configure a log """
 
 log_format = '%(message)s'
-logging.basicConfig(stream=sys.stdout, level=logging.INFO, format=log_format)
-fh = logging.FileHandler(os.path.join(args.output_file[:-6], 'log.txt'))
+filename_log = os.path.join(
+    output_folder, 
+    f'log_training-{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")}.txt'
+    )
+fh = logging.FileHandler(filename_log)
 fh.setFormatter(logging.Formatter(log_format))
 logging.getLogger().addHandler(fh)
+logging.basicConfig(
+    filename=filename_log,
+    level=logging.INFO, format=log_format
+    )
+logger = logging.getLogger(__name__)
 
+logging.info(f'args:')
+print(f'args:')
+for arg, value in vars(args).items():
+    logging.info(f"--{arg}: {value}")
+    print(f"{arg}: {value}", end=' | ')
+logging.info('-'*50)
 
 """ load datasets """
 
@@ -77,7 +94,7 @@ model = create_thor(num_kps2d=num_kps2d, num_kps3d=num_kps3d, num_verts=num_vert
                                 device=device, num_features=args.num_features, hid_size=args.hid_size,
                                 photometric=args.photometric, graph_input=graph_input, dataset_name=args.dataset_name, testing=args.testing)
 
-logging.info('🟢 THOR-Net is loaded')
+print('🟢 THOR-Net is loaded')
 
 if torch.cuda.is_available():
     model = model.cuda(args.gpu_number[0])
@@ -86,9 +103,16 @@ if torch.cuda.is_available():
 """ load saved model"""
 
 if args.pretrained_model != '':
-    model.load_state_dict(torch.load(args.pretrained_model, map_location=f'cuda:{args.gpu_number[0]}'))
+    state_dict = torch.load(args.pretrained_model, map_location=device)
+    try:
+        model.load_state_dict(state_dict)
+    except:
+        for key in list(state_dict.keys()):
+            state_dict[key.replace('module.', '')] = state_dict.pop(key)
+        model.load_state_dict(state_dict)
     losses = np.load(args.pretrained_model[:-4] + '-losses.npy').tolist()
     start = len(losses)
+    print(f'🟢 Model checkpoint "{args.pretrained_model.split(os.sep)[-1]}" loaded')
 else:
     losses = []
     start = 0
@@ -105,7 +129,7 @@ keys = ['boxes', 'labels', 'keypoints', 'keypoints3d', 'mesh3d', 'palm']
 
 """ training """
 
-logging.info('🟢 Begin training the network')
+print('🟢 Begin training the network')
 
 for epoch in range(start, args.num_iterations):  # loop over the dataset multiple times
     
@@ -119,6 +143,7 @@ for epoch in range(start, args.num_iterations):  # loop over the dataset multipl
         h2o_info = (train_input_tar_lists, train_annotation_tar_files, annotation_components, args.buffer_size, my_preprocessor)
         trainloader = create_loader(args.dataset_name, h2o_data_dir, 'train', args.batch_size, h2o_info=h2o_info)
 
+    pbar = tqdm(desc=f'Epoch {epoch+1} - train: ', total=len(trainloader))
     for i, tr_data in enumerate(trainloader):
         
         # get the inputs
@@ -155,13 +180,15 @@ for epoch in range(start, args.num_iterations):  # loop over the dataset multipl
             running_loss2d = 0.0
             running_loss3d = 0.0
             running_photometric_loss = 0.0
+            
+        pbar.update(1)
 
     losses.append((train_loss2d / (i+1)).cpu().numpy())
     
     if (epoch+1) % args.snapshot_epoch == 0:
         torch.save(model.state_dict(), args.output_file+str(epoch+1)+'.pkl')
         np.save(args.output_file+str(epoch+1)+'-losses.npy', np.array(losses))
-        logging.info(f'Model checkpoint (epoch {epoch+1}) saved in "{args.output_file}"')
+        print(f'Model checkpoint (epoch {epoch+1}) saved in "{args.output_file}"')
 
     if (epoch+1) % args.val_epoch == 0:
         val_loss2d = 0.0
