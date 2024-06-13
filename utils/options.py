@@ -22,6 +22,12 @@ def parse_args_function():
         default='../mano_v1_2/models',
         help="Path to 'mano_v1_2' folder"
     )
+    
+    parser.add_argument(
+        "--hands_connectivity_type",
+        default='',
+        help="Type of hand joints connectivity between simple, extended, full"
+    )
 
     parser.add_argument(
         "--obj_root",

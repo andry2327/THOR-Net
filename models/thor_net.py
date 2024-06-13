@@ -172,7 +172,9 @@ class THOR(FasterRCNN):
                  # keypoint parameters
                  keypoint_roi_pool=None, keypoint_head=None, keypoint_predictor=None, 
                  num_kps2d=21, num_kps3d=50, num_verts=2556, photometric=False, hid_size=128,
-                 graph_input='heatmaps', num_features=2048, device='cuda', dataset_name='h2o'):
+                 graph_input='heatmaps', num_features=2048, device='cuda', dataset_name='h2o',
+                 #hands connectivity parameters
+                 hands_connectivity_type=''):
 
         self.device = device
 
@@ -206,7 +208,7 @@ class THOR(FasterRCNN):
         else:
             input_size = 2
         
-        edges = create_edges(num_nodes=num_kps3d)
+        edges = create_edges(num_nodes=num_kps3d, connectivity_type=hands_connectivity_type)
         adj = adj_mx_from_edges(num_pts=num_kps3d, edges=edges, sparse=False)            
         keypoint_graformer = GraFormer(adj=adj.to(device), hid_dim=hid_size, coords_dim=(input_size, 3), 
                                         n_pts=num_kps3d, num_layers=5, n_head=4, dropout=0.25)
@@ -333,7 +335,8 @@ def create_thor(pretrained=False, progress=True,
                               photometric=True, 
                               graph_input='heatmaps', 
                               dataset_name='ho3d',
-                              testing=False):
+                              testing=False,
+                              hands_connectivity_type=''):
     """
     Constructs a Keypoint R-CNN model with a ResNet-50-FPN backbone.
 
@@ -411,7 +414,8 @@ def create_thor(pretrained=False, progress=True,
                     hid_size=hid_size,
                     photometric=photometric,
                     graph_input=graph_input,
-                    dataset_name=dataset_name)
+                    dataset_name=dataset_name,
+                    hands_connectivity_type=hands_connectivity_type)
     else: # args: Testing = True
         model = THOR(backbone,
                     num_classes=num_classes, 
@@ -424,5 +428,6 @@ def create_thor(pretrained=False, progress=True,
                     graph_input=graph_input,
                     dataset_name=dataset_name,
                     num_features=num_features,
-                    hid_size=hid_size)
+                    hid_size=hid_size,
+                    hands_connectivity_type=hands_connectivity_type)
     return model

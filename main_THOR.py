@@ -33,13 +33,14 @@ output_folder = args.output_file[:-6]
 #     print(f"{arg}: {value}", end=' | ')
 # print('-'*30)
 
-
+# DEBUG
 # args.dataset_name = 'povsurgery' 
 # args.root = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/povsurgery/object_True' 
 # args.output_file = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_HO3D/model-' 
 # args.batch_size = 1
 # args.num_iteration = 3
 # args.object = False 
+# args.hands_connectivity_type = 'simple'
 
 # Define device
 device = torch.device(f'cuda:{args.gpu_number[0]}' if torch.cuda.is_available() else 'cpu')
@@ -95,7 +96,8 @@ else: # i.e. HO3D, POV-Surgery
 model = create_thor(num_kps2d=num_kps2d, num_kps3d=num_kps3d, num_verts=num_verts, num_classes=num_classes, 
                                 rpn_post_nms_top_n_train=num_classes-1, 
                                 device=device, num_features=args.num_features, hid_size=args.hid_size,
-                                photometric=args.photometric, graph_input=graph_input, dataset_name=args.dataset_name, testing=args.testing)
+                                photometric=args.photometric, graph_input=graph_input, dataset_name=args.dataset_name, testing=args.testing,
+                                hands_connectivity_type=args.hands_connectivity_type)
 
 print('🟢 THOR-Net is loaded')
 

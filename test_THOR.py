@@ -131,7 +131,8 @@ model = create_thor(pretrained=False, num_classes=num_classes, device=device,
                                 rpn_post_nms_top_n_test=num_classes-1, 
                                 box_score_thresh=0.0,
                                 photometric=args.photometric, graph_input=graph_input, dataset_name=args.dataset_name,
-                                num_features=args.num_features, hid_size=args.hid_size, testing=args.testing)
+                                num_features=args.num_features, hid_size=args.hid_size, testing=args.testing,
+                                hands_connectivity_type=args.hands_connectivity_type)
 
 if torch.cuda.is_available():
     model = model.cuda(device=args.gpu_number[0])

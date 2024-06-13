@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division
 
 import numpy as np
+import itertools
 import torch
 from .camera import world_to_camera, normalize_screen_coordinates
 
@@ -86,8 +87,7 @@ def convert_faces_to_edges(faces):
     
     return edges
 
-def create_edges(seq_length=1, num_nodes=29):
-
+def create_edges(seq_length=1, num_nodes=29, connectivity_type=''):
     if num_nodes == 778:
         
         faces = np.load('./GraFormer/RightHandFaces.npy')
@@ -108,6 +108,45 @@ def create_edges(seq_length=1, num_nodes=29):
                     [21, 22],[22, 24], [24, 23], [23, 21],
                     [25, 26], [26, 28], [28, 27], [27, 25],
                     [21, 25], [22, 26], [23, 27], [24, 28]])
+        elif connectivity_type == 'simple':
+            
+            # Add same-level connections between adjacent fingers
+            additional_edges = [
+                [3, 7], [7, 11], [11, 15], [15, 19],
+                [4, 8], [8, 12], [12, 16], [16, 20],
+                [2, 6], [6, 10], [10, 14], [14, 18]
+                ]
+            initial_edges.extend(additional_edges)
+        elif connectivity_type == 'extended':
+            
+            # Add full connections between adjacent fingers
+            
+            joints_pairs_1 = [2, 3, 4, 6, 7, 8]
+            additional_edges_1 = [list(x) for x in itertools.combinations(joints_pairs_1, 2)]
+            initial_edges.extend(additional_edges_1)
+            joints_pairs_2 = [6, 7, 8, 10, 11, 12]
+            additional_edges_2 = [list(x) for x in itertools.combinations(joints_pairs_2, 2)]
+            initial_edges.extend(additional_edges_2)
+            joints_pairs_3 = [10, 11, 12, 14, 15, 16]
+            additional_edges_3 = [list(x) for x in itertools.combinations(joints_pairs_3, 2)]
+            initial_edges.extend(additional_edges_3)
+            joints_pairs_4 = [14, 15, 16, 18, 19, 20]
+            additional_edges_4 = [list(x) for x in itertools.combinations(joints_pairs_4, 2)]
+            initial_edges.extend(additional_edges_4)
+            
+            initial_edges = list(set(initial_edges)) # remove duplicates edges
+        elif connectivity_type == 'full':
+            
+            # Add full connections between every finger
+            
+            joints = [2, 3, 4, 6, 7, 8, 10, 11, 12, 14, 15, 16, 18, 19, 20]
+            additional_edges = [list(x) for x in itertools.combinations(joints_pairs_4, 2)]
+            initial_edges.extend(additional_edges)
+            
+            initial_edges = list(set(initial_edges)) # remove duplicates edges    
+        else:
+            pass
+            
     edges = []
     for i in range(0, seq_length):
 
