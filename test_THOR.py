@@ -164,7 +164,7 @@ output_dicts = ({}, {})
 
 evaluate = False
 errors = [[], [], [], [], [], []]
-if args.split == 'val' or (args.dataset_name == 'h2o' and args.split == 'test'):  
+if args.split == 'test' or (args.dataset_name == 'h2o' and args.split == 'test'):  
     evaluate = True  
 
 # rgb_errors = []
