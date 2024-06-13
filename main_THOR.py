@@ -13,6 +13,7 @@ import logging
 import sys
 import os
 import datetime
+import pytz
 from tqdm import tqdm
 
 from utils.options import parse_args_function
@@ -52,9 +53,10 @@ num_kps2d, num_kps3d, num_verts = calculate_keypoints(args.dataset_name, args.ob
 """ Configure a log """
 
 log_format = '%(message)s'
+timezone_str = pytz.timezone("Europe/Rome")
 filename_log = os.path.join(
-    output_folder, 
-    f'log_training-{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")}.txt'
+    output_folder,
+    f'log_training-{datetime.datetime.now(timezone_str).strftime("%d-%m-%Y_%H-%M")}.txt'
     )
 fh = logging.FileHandler(filename_log)
 fh.setFormatter(logging.Formatter(log_format))
@@ -71,6 +73,7 @@ for arg, value in vars(args).items():
     logging.info(f"--{arg}: {value}")
     print(f"{arg}: {value}", end=' | ')
 logging.info('-'*50)
+print()
 
 """ load datasets """
 
