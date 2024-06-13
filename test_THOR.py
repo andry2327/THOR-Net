@@ -172,7 +172,6 @@ if args.split == 'val' or (args.dataset_name == 'h2o' and args.split == 'test'):
 for i, ts_data in tqdm(enumerate(testloader), total=len(testloader)):
         
     data_dict = ts_data
-    print(data_dict[0]['path']) # DEBUG
     path = data_dict[0]['path'].split('/')[-1]
     if args.seq not in data_dict[0]['path']:
         continue
