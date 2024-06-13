@@ -108,13 +108,13 @@ if args.dataset_name == 'h2o':
     input_tar_lists, annotation_tar_files = load_tar_split(h2o_data_dir, args.split)   
     datapipe = create_datapipe(input_tar_lists, annotation_tar_files, annotation_components, args.buffer_size)
     datapipe = datapipe.map(fn=my_preprocessor)
-    testloader = torch.utils.data.DataLoader(datapipe, batch_size=args.batch_size, num_workers=8, shuffle=True)
+    testloader = torch.utils.data.DataLoader(datapipe, batch_size=args.batch_size, num_workers=2, shuffle=True)
     num_classes = 4
     graph_input='coords'
 else:
 
     testset = Dataset(root=args.root, load_set=args.split, transform=transform_function, num_kps3d=num_kps3d, num_verts=num_verts)
-    testloader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size, shuffle=True, num_workers=16, collate_fn=ho3d_collate_fn)
+    testloader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size, shuffle=True, num_workers=2, collate_fn=ho3d_collate_fn)
     num_classes = 2
     graph_input='heatmaps'
 

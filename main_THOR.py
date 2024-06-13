@@ -185,7 +185,8 @@ for epoch in range(start, args.num_iterations):  # loop over the dataset multipl
             running_photometric_loss = 0.0
             
         pbar.update(1)
-
+    pbar.close()
+    
     losses.append((train_loss2d / (i+1)).cpu().numpy())
     
     if (epoch+1) % args.snapshot_epoch == 0:
@@ -205,6 +206,7 @@ for epoch in range(start, args.num_iterations):  # loop over the dataset multipl
             h2o_info = (val_input_tar_lists, val_annotation_tar_files, annotation_components, args.buffer_size, my_preprocessor)
             valloader = create_loader(args.dataset_name, h2o_data_dir, 'val', args.batch_size, h2o_info)
 
+        pbar = tqdm(desc=f'Epoch {epoch+1} - val: ', total=len(valloader))
         for v, val_data in enumerate(valloader):
             
             # get the inputs
@@ -220,11 +222,16 @@ for epoch in range(start, args.num_iterations):  # loop over the dataset multipl
             val_mesh_loss3d += loss_dict['loss_mesh3d'].data
             if 'loss_photometric' in loss_dict.keys():
                 running_photometric_loss += loss_dict['loss_photometric'].data
+            
+            pbar.update(1)
+        pbar.close()
         
         # model.module.transform.training = True
         
-        logging.info('val loss 2d: %.4f, val loss 3d: %.4f, val mesh loss 3d: %.4f, val photometric loss: %.4f' % 
-                    (val_loss2d / (v+1), val_loss3d / (v+1), val_mesh_loss3d / (v+1), val_photometric_loss / (v+1)))        
+        logging.info('Epoch %d/%d - val loss 2d: %.4f, val loss 3d: %.4f, val mesh loss 3d: %.4f, val photometric loss: %.4f' % 
+                    (epoch + 1, args.num_iterations, val_loss2d / (v+1), val_loss3d / (v+1), val_mesh_loss3d / (v+1), val_photometric_loss / (v+1)))  
+        print('Epoch %d/%d - val loss 2d: %.4f, val loss 3d: %.4f, val mesh loss 3d: %.4f, val photometric loss: %.4f' % 
+                    (epoch + 1, args.num_iterations, val_loss2d / (v+1), val_loss3d / (v+1), val_mesh_loss3d / (v+1), val_photometric_loss / (v+1)))  
     
     if args.freeze and epoch == 0:
         logging.info('Freezing Keypoint RCNN ..')            

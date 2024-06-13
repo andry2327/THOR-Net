@@ -27,7 +27,7 @@ if mesh:
         n_points = 1778
 
 valset = Dataset(dataset_path, load_set='val', seq_length=seq_length, n_points=n_points, eval_pred=True)
-valid_loader = torch.utils.data.DataLoader(valset, batch_size=4, shuffle=True, num_workers=16)  
+valid_loader = torch.utils.data.DataLoader(valset, batch_size=4, shuffle=True, num_workers=2)  
 
 # Create model
 print("==> Creating model...")

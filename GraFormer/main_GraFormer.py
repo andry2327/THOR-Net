@@ -135,7 +135,7 @@ def main(args):
         print('==> Evaluating...')
 
         valset = Dataset(args.dataset_path, load_set='val', seq_length=args.seq_length, n_points=n_points)
-        valid_loader = torch.utils.data.DataLoader(valset, batch_size=32, shuffle=True, num_workers=16)    
+        valid_loader = torch.utils.data.DataLoader(valset, batch_size=32, shuffle=True, num_workers=2)    
         errors_p1, errors_p2 = evaluate(valid_loader, model_pos, device)
 
         print('Protocol #1   (MPJPE) action-wise average: {:.2f} (mm)'.format(np.mean(errors_p1).item()))
@@ -143,10 +143,10 @@ def main(args):
         exit(0)
 
     trainset = Dataset(args.dataset_path, load_set='train', seq_length=args.seq_length, n_points=n_points)
-    train_loader = torch.utils.data.DataLoader(trainset, batch_size=32, shuffle=True, num_workers=16)    
+    train_loader = torch.utils.data.DataLoader(trainset, batch_size=32, shuffle=True, num_workers=2)    
     
     valset = Dataset(args.dataset_path, load_set='val', seq_length=args.seq_length, n_points=n_points)
-    valid_loader = torch.utils.data.DataLoader(valset, batch_size=32, shuffle=True, num_workers=16)    
+    valid_loader = torch.utils.data.DataLoader(valset, batch_size=32, shuffle=True, num_workers=2)    
     
     for epoch in range(start_epoch, args.epochs):
         print('\nEpoch: %d | LR: %.8f' % (epoch + 1, lr_now))
