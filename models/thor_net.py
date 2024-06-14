@@ -222,7 +222,8 @@ class THOR(FasterRCNN):
             if photometric:
                 output_size += 3
             mesh_graformer = MeshGraFormer(initial_adj=adj.to(device), hid_dim=num_features // 4, coords_dim=(input_size, output_size), 
-                            num_kps3d=num_kps3d, num_verts=num_verts, dropout=0.25)
+                            num_kps3d=num_kps3d, num_verts=num_verts, dropout=0.25, 
+                            adj_matrix_root='/content/THOR-Net/GraFormer/adj_matrix')
 
         super(THOR, self).__init__(
             backbone, num_classes,

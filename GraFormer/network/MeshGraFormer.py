@@ -50,6 +50,7 @@ class MeshGraFormer(nn.Module):
         self.initial_adj = initial_adj
         self.device = initial_adj.device
         self.num_points_levels = 3
+        self.adj_matrix_root = adj_matrix_root
 
         hid_dim_list = [hid_dim, hid_dim // 4, hid_dim // 16, coords_dim[1]]
 
@@ -68,7 +69,7 @@ class MeshGraFormer(nn.Module):
         self.mask = [torch.tensor([[[True] * points_levels[i]]]).to(self.device) for i in range(3)]
         
         self.adj = [initial_adj.to(self.device)]
-        self.adj.extend([torch.from_numpy(scipy.sparse.load_npz(f'{adj_matrix_root}/hand{obj}{points_levels[i]}.npz').toarray()).float().to(self.device) for i in range(1, 4)])
+        self.adj.extend([torch.from_numpy(scipy.sparse.load_npz(f'{self.adj_matrix_root}/hand{obj}{points_levels[i]}.npz').toarray()).float().to(self.device) for i in range(1, 4)])
                 
         gconv_inputs = []
         gconv_layers = []

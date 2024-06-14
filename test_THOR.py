@@ -25,6 +25,30 @@ warnings.filterwarnings('ignore')
 # Input parameters
 args = parse_args_function()
 
+# DEBUG
+args.testing = True
+args.dataset_name = 'povsurgery'
+args.root = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/povsurgery/object_False' 
+args.checkpoint_model = '/content/THOR-Net/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training_sample--13-06-2024_15-22/model-1.pkl'
+args.mano_root = '/content/drive/MyDrive/Thesis/mano_v1_2/models'
+args.obj_root = '/content/THOR-Net/datasets/objects/mesh_1000/book.obj'
+args.split = 'test'
+args.seq = 'SM1'
+args.seq = 'rgb' 
+args.output_results = '/content/drive/MyDrive/Thesis/THOR-Net_based_work'
+args.gpu_number = 0
+args.batch_size = 1
+args.hid_size = 96
+args.photometric = True
+args.hands_connectivity_type = 'base'
+args.visualize = True
+# --object \
+    
+print(f'args:')
+for arg, value in vars(args).items():
+    print(f"{arg}: {value}", end=' | ')
+print('\n')
+
 left_hand_faces, right_hand_faces, obj_faces = load_faces(mano_root=args.mano_root, obj_root=args.obj_root)
 
 def visualize2d(img, predictions, labels=None, filename=None, palm=None, evaluate=False):
@@ -139,7 +163,7 @@ if torch.cuda.is_available():
     model = nn.DataParallel(model, device_ids=args.gpu_number)
 
 ### Load model
-pretrained_model = f'./checkpoints/{args.checkpoint_folder}/model-{args.checkpoint_id}.pkl'
+pretrained_model = args.checkpoint_model
 
 # adjust key names, they are in wrong format
 state_dict = torch.load(pretrained_model, map_location=device)
@@ -170,16 +194,21 @@ if args.split == 'test' or (args.dataset_name == 'h2o' and args.split == 'test')
 
 # rgb_errors = []
 
-for i, ts_data in tqdm(enumerate(testloader), total=len(testloader)):
-        
-    data_dict = ts_data
-    path = data_dict[0]['path'].split('/')[-1]
-    if args.seq not in data_dict[0]['path']:
-        continue
-    if '_' in path:
-        path = path.split('_')[-1]
-    frame_num = int(path.split('.')[0])
+for i, ts_data in tqdm(enumerate(testloader), total=len(testloader), desc='Evaluation: '):
     
+    data_dict = ts_data
+    path = data_dict[0]['path'].split(os.sep)[-1]
+    if args.dataset_name=='ho3d':
+        if args.seq not in data_dict[0]['path']:
+            continue
+        if '_' in path:
+            path = path.split('_')[-1]
+        frame_num = int(path.split('.')[0])
+    elif args.dataset_name=='povsurgery':
+        seq = data_dict[0]['path'].split(os.sep)[-2]
+    else:
+        pass
+        
     ### Run inference
     inputs = [t['inputs'].to(device) for t in data_dict]
     outputs = model(inputs)
@@ -191,7 +220,7 @@ for i, ts_data in tqdm(enumerate(testloader), total=len(testloader)):
     if args.visualize: 
 
         name = path.split('/')[-1]
-        output_dir = f'./outputs/visual_results/{args.seq}'
+        output_dir = os.path.join(args.output_results, seq)
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 

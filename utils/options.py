@@ -24,6 +24,18 @@ def parse_args_function():
     )
     
     parser.add_argument(
+        "--output_results",
+        default='/content/drive/MyDrive/Thesis/THOR-Net_based_work',
+        help="Path to save outputs results"
+    )
+    
+    parser.add_argument(
+        "--checkpoint_model",
+        default='/content/THOR-Net/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training_sample--13-06-2024_15-22/model-1.pkl',
+        help="Path to model to evaluate"
+    )
+    
+    parser.add_argument(
         "--hands_connectivity_type",
         default='',
         help="Type of hand joints connectivity between simple, extended, full"

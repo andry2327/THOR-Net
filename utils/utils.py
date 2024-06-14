@@ -138,7 +138,7 @@ def save_calculate_error(predictions, labels, path, errors, output_dicts, c, num
         error = 1000
         keypoints = np.zeros((50, 3))
         mesh = np.zeros((2556, 3))
-        print(c)
+        # print(c)
       
     output_dicts[0][path] = keypoints
     output_dicts[1][path] = mesh   
