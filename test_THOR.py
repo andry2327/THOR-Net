@@ -147,7 +147,7 @@ if torch.cuda.is_available():
     use_cuda = True
 
 # Define device
-device = torch.device(f'cuda:{args.gpu_number[0]}' if torch.cuda.is_available() else 'cpu')
+device = torch.device(f'cuda:{args.gpu_number}' if torch.cuda.is_available() else 'cpu')
 
 # Define model
 model = create_thor(pretrained=False, num_classes=num_classes, device=device,
@@ -159,8 +159,9 @@ model = create_thor(pretrained=False, num_classes=num_classes, device=device,
                                 hands_connectivity_type=args.hands_connectivity_type)
 
 if torch.cuda.is_available():
-    model = model.cuda(device=args.gpu_number[0])
-    model = nn.DataParallel(model, device_ids=args.gpu_number)
+    model = model.cuda(device=args.gpu_number)
+    model = nn.DataParallel(model, device_ids=[args.gpu_number])  
+        
 
 ### Load model
 pretrained_model = args.checkpoint_model

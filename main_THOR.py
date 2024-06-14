@@ -111,7 +111,7 @@ else: # i.e. HO3D, POV-Surgery
     #         trainloader_first_2.append(data)# DEBUG 
     #     else: break # DEBUG 
     # trainloader = trainloader_first_2 # DEBUG 
-    print(f'✅ Training data loaded...')
+    print(f'✅ Training data loaded.')
     print(f'Loading validation data ...', end=' ')
     valloader = create_loader(args.dataset_name, args.root, 'val', batch_size=args.batch_size)
     # valloader_first_2 = []# DEBUG 
@@ -120,7 +120,7 @@ else: # i.e. HO3D, POV-Surgery
     #         valloader_first_2.append(data)# DEBUG 
     #     else: break # DEBUG 
     # valloader = valloader_first_2 # DEBUG 
-    print(f'✅ Validation data loaded...')
+    print(f'✅ Validation data loaded.')
     num_classes = 2 
     graph_input = 'heatmaps'
 
