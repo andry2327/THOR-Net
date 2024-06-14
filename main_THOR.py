@@ -27,7 +27,7 @@ from models.thor_net import create_thor
 torch.multiprocessing.set_sharing_strategy('file_system')
 
 args = parse_args_function()
-output_folder = args.output_file[:-6]
+output_folder = args.output_file.rpartition(os.sep)[0]
 # print(f'args:')
 # for arg, value in vars(args).items():
 #     print(f"{arg}: {value}", end=' | ')
@@ -35,11 +35,13 @@ output_folder = args.output_file[:-6]
 
 # DEBUG
 # args.dataset_name = 'povsurgery' 
-# args.root = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/povsurgery/object_True' 
-# args.output_file = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_HO3D/model-' 
+# args.root = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/povsurgery/object_False' 
+# args.output_file = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training--14-06-2024_10-53/model-' 
+# output_folder = args.output_file.rpartition(os.sep)[0]
 # args.batch_size = 1
 # args.num_iteration = 3
 # args.object = False 
+# args.pretrained_model=''#'/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training--14-06-2024_10-53/model-1.pkl'
 # args.hands_connectivity_type = 'simple'
 
 # Define device
@@ -53,28 +55,42 @@ num_kps2d, num_kps3d, num_verts = calculate_keypoints(args.dataset_name, args.ob
 
 """ Configure a log """
 
-log_format = '%(message)s'
-timezone_str = pytz.timezone("Europe/Rome")
-filename_log = os.path.join(
-    output_folder,
-    f'log_training-{datetime.datetime.now(timezone_str).strftime("%d-%m-%Y_%H-%M")}.txt'
+files_in_dir = os.listdir(output_folder)
+log_file = [x for x in files_in_dir if x.endswith('.txt')]
+
+if log_file:
+    # If there is an existing log file, use the first one found
+    filename_log = os.path.join(output_folder, log_file[0])
+else:
+    # Create a new log file
+    filename_log = os.path.join(
+        output_folder,
+        f'log_{output_folder.rpartition(os.sep)[-1]}.txt'
     )
-fh = logging.FileHandler(filename_log)
-fh.setFormatter(logging.Formatter(log_format))
-logging.getLogger().addHandler(fh)
+
+# Configure the logging
+log_format = '%(message)s'
 logging.basicConfig(
     filename=filename_log,
-    level=logging.INFO, format=log_format
-    )
+    level=logging.INFO,
+    format=log_format,
+    filemode='a'  
+)
+fh = logging.FileHandler(filename_log, mode='a')  # Use 'a' mode to append to the log file
+fh.setFormatter(logging.Formatter(log_format))
 logger = logging.getLogger(__name__)
+logger.addHandler(fh)
+logger.setLevel(logging.INFO)
 
-logging.info(f'args:')
+logging.info(f'args:') if not log_file else None
 print(f'args:')
 for arg, value in vars(args).items():
-    logging.info(f"--{arg}: {value}")
+    logging.info(f"--{arg}: {value}") if not log_file else None
     print(f"{arg}: {value}", end=' | ')
-logging.info('-'*50)
-print()
+logging.info('--'*50) if not log_file else None
+print('\n')
+
+print(f'🟢 Logging info in "{filename_log}"')
 
 """ load datasets """
 
@@ -87,8 +103,24 @@ if args.dataset_name.lower() == 'h2o':
     num_classes = 4
     graph_input = 'coords'
 else: # i.e. HO3D, POV-Surgery
+    print(f'Loading training data ...', end=' ')
     trainloader = create_loader(args.dataset_name, args.root, 'train', batch_size=args.batch_size, num_kps3d=num_kps3d, num_verts=num_verts)
+    # trainloader_first_2 = []# DEBUG 
+    # for i, data in enumerate(trainloader):# DEBUG 
+    #     if i < 2:# DEBUG 
+    #         trainloader_first_2.append(data)# DEBUG 
+    #     else: break # DEBUG 
+    # trainloader = trainloader_first_2 # DEBUG 
+    print(f'✅ Training data loaded...')
+    print(f'Loading validation data ...', end=' ')
     valloader = create_loader(args.dataset_name, args.root, 'val', batch_size=args.batch_size)
+    # valloader_first_2 = []# DEBUG 
+    # for i, data in enumerate(valloader):# DEBUG 
+    #     if i < 2:# DEBUG 
+    #         valloader_first_2.append(data)# DEBUG 
+    #     else: break # DEBUG 
+    # valloader = valloader_first_2 # DEBUG 
+    print(f'✅ Validation data loaded...')
     num_classes = 2 
     graph_input = 'heatmaps'
 
@@ -117,7 +149,7 @@ if args.pretrained_model != '':
         model.load_state_dict(state_dict)
     losses = np.load(args.pretrained_model[:-4] + '-losses.npy').tolist()
     start = len(losses)
-    print(f'🟢 Model checkpoint "{args.pretrained_model.split(os.sep)[-1]}" loaded')
+    print(f'🟢 Model checkpoint "{args.pretrained_model}" loaded')
 else:
     losses = []
     start = 0
