@@ -104,22 +104,9 @@ if args.dataset_name.lower() == 'h2o':
     graph_input = 'coords'
 else: # i.e. HO3D, POV-Surgery
     print(f'Loading training data ...', end=' ')
-    trainloader = create_loader(args.dataset_name, args.root, 'train', batch_size=args.batch_size, num_kps3d=num_kps3d, num_verts=num_verts)
-    # trainloader_first_2 = []# DEBUG 
-    # for i, data in enumerate(trainloader):# DEBUG 
-    #     if i < 2:# DEBUG 
-    #         trainloader_first_2.append(data)# DEBUG 
-    #     else: break # DEBUG 
-    # trainloader = trainloader_first_2 # DEBUG 
-    print(f'✅ Training data loaded.')
+    trainloader = create_loader(args.dataset_name, args.root, 'train', batch_size=args.batch_size, num_kps3d=num_kps3d, num_verts=num_verts, is_sample_dataset=True)
     print(f'Loading validation data ...', end=' ')
-    valloader = create_loader(args.dataset_name, args.root, 'val', batch_size=args.batch_size)
-    # valloader_first_2 = []# DEBUG 
-    # for i, data in enumerate(valloader):# DEBUG 
-    #     if i < 2:# DEBUG 
-    #         valloader_first_2.append(data)# DEBUG 
-    #     else: break # DEBUG 
-    # valloader = valloader_first_2 # DEBUG 
+    valloader = create_loader(args.dataset_name, args.root, 'val', batch_size=args.batch_size, is_sample_dataset=True)
     print(f'✅ Validation data loaded.')
     num_classes = 2 
     graph_input = 'heatmaps'

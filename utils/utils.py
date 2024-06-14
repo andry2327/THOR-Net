@@ -30,7 +30,7 @@ def h2o_collate_fn(samples):
         output_list.append(sample_dict)
     return output_list
 
-def create_loader(dataset_name, root, split, batch_size, num_kps3d=21, num_verts=778, h2o_info=None):
+def create_loader(dataset_name, root, split, batch_size, num_kps3d=21, num_verts=778, h2o_info=None, is_sample_dataset=False):
 
     transform = transforms.Compose([transforms.ToTensor()])
 
@@ -43,7 +43,13 @@ def create_loader(dataset_name, root, split, batch_size, num_kps3d=21, num_verts
     else:
         dataset = Dataset(root=root, load_set=split, transform=transform, num_kps3d=num_kps3d, num_verts=num_verts)
         loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=2, collate_fn=ho3d_collate_fn)    
-        
+
+    if is_sample_dataset:
+        print('Sub-dataset creation')
+        from torch.utils.data import Subset
+        subset_size = 100 if split=='train' else 20
+        indices = list(range(subset_size))
+        loader = Subset(loader, indices)
     return loader
 
 def freeze_component(model):
