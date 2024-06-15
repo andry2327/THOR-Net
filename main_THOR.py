@@ -105,6 +105,7 @@ if args.dataset_name.lower() == 'h2o':
 else: # i.e. HO3D, POV-Surgery
     print(f'Loading training data ...', end=' ')
     trainloader = create_loader(args.dataset_name, args.root, 'train', batch_size=args.batch_size, num_kps3d=num_kps3d, num_verts=num_verts, is_sample_dataset=True)
+    print(f'✅ Training data loaded.')
     print(f'Loading validation data ...', end=' ')
     valloader = create_loader(args.dataset_name, args.root, 'val', batch_size=args.batch_size, is_sample_dataset=True)
     print(f'✅ Validation data loaded.')
@@ -213,6 +214,14 @@ for epoch in range(start, args.num_iterations):  # loop over the dataset multipl
     if (epoch+1) % args.snapshot_epoch == 0:
         torch.save(model.state_dict(), args.output_file+str(epoch+1)+'.pkl')
         np.save(args.output_file+str(epoch+1)+'-losses.npy', np.array(losses))
+        # delete files from older epochs
+        if epoch+1 > 1:
+            files_to_delete = [x for x in os.listdir(args.output_folder) if f'model-{epoch}' in x]
+            for file in files_to_delete:
+                try:
+                    os.remove(os.join(args.output_folder, file))
+                except:
+                    pass
         print(f'Model checkpoint (epoch {epoch+1}) saved in "{args.output_file}"')
 
     if (epoch+1) % args.val_epoch == 0:
