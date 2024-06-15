@@ -34,15 +34,17 @@ output_folder = args.output_file.rpartition(os.sep)[0]
 # print('-'*30)
 
 # DEBUG
-# args.dataset_name = 'povsurgery' 
-# args.root = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/povsurgery/object_False' 
-# args.output_file = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training--14-06-2024_10-53/model-' 
-# output_folder = args.output_file.rpartition(os.sep)[0]
-# args.batch_size = 1
-# args.num_iteration = 3
-# args.object = False 
-# args.pretrained_model=''#'/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training--14-06-2024_10-53/model-1.pkl'
-# args.hands_connectivity_type = 'simple'
+args.dataset_name = 'povsurgery' 
+args.root = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/povsurgery/object_False' 
+args.output_file = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-TEST--/model-' 
+output_folder = args.output_file.rpartition(os.sep)[0]
+if not os.path.exists(output_folder):
+    os.mkdir(output_folder) 
+args.batch_size = 1
+args.num_iteration = 3
+args.object = False 
+args.pretrained_model=''#'/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training--14-06-2024_10-53/model-1.pkl'
+args.hands_connectivity_type = 'simple'
 
 # Define device
 device = torch.device(f'cuda:{args.gpu_number[0]}' if torch.cuda.is_available() else 'cpu')
@@ -214,15 +216,16 @@ for epoch in range(start, args.num_iterations):  # loop over the dataset multipl
     if (epoch+1) % args.snapshot_epoch == 0:
         torch.save(model.state_dict(), args.output_file+str(epoch+1)+'.pkl')
         np.save(args.output_file+str(epoch+1)+'-losses.npy', np.array(losses))
+        print(f'Model checkpoint (epoch {epoch+1}) saved in "{args.output_file}"')
         # delete files from older epochs
         if epoch+1 > 1:
-            files_to_delete = [x for x in os.listdir(args.output_folder) if f'model-{epoch}' in x]
+            files_to_delete = [x for x in os.listdir(output_folder) if f'model-{epoch}' in x]
             for file in files_to_delete:
                 try:
-                    os.remove(os.join(args.output_folder, file))
+                    os.remove(os.path.join(output_folder, file))
                 except:
                     pass
-        print(f'Model checkpoint (epoch {epoch+1}) saved in "{args.output_file}"')
+        
 
     if (epoch+1) % args.val_epoch == 0:
         val_loss2d = 0.0
