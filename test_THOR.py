@@ -27,22 +27,22 @@ args = parse_args_function()
 is_sample_dataset = True
 
 # DEBUG
-args.testing = True
-args.dataset_name = 'povsurgery'
-args.root = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/povsurgery/object_False' 
-args.checkpoint_model = '/content/THOR-Net/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-TEST--15-06-2024_11-17/model-18.pkl'
-args.mano_root = '/content/drive/MyDrive/Thesis/mano_v1_2/models'
-args.obj_root = '/content/THOR-Net/datasets/objects/mesh_1000/book.obj'
-args.split = 'test'
-args.seq = 'SM1'
-args.seq = 'rgb' 
-args.output_results = '/content/drive/MyDrive/Thesis/THOR-Net_based_work'
-args.gpu_number = 0
-args.batch_size = 1
-args.hid_size = 96
-args.photometric = True
-args.hands_connectivity_type = 'base'
-args.visualize = True
+# args.testing = True
+# args.dataset_name = 'povsurgery'
+# args.root = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/povsurgery/object_False' 
+# args.checkpoint_model = '/content/THOR-Net/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-TEST--15-06-2024_11-17/model-18.pkl'
+# args.mano_root = '/content/drive/MyDrive/Thesis/mano_v1_2/models'
+# args.obj_root = '/content/THOR-Net/datasets/objects/mesh_1000/book.obj'
+# args.split = 'test'
+# args.seq = 'SM1'
+# args.seq = 'rgb' 
+# args.output_results = '/content/drive/MyDrive/Thesis/THOR-Net_based_work'
+# args.gpu_number = 0
+# args.batch_size = 1
+# args.hid_size = 96
+# args.photometric = True
+# args.hands_connectivity_type = 'base'
+# args.visualize = True
 # --object \
     
 print(f'args:')
@@ -137,23 +137,28 @@ if args.dataset_name == 'h2o':
     num_classes = 4
     graph_input='coords'
 else:
-
+    print(f'Loading evaluation data ...', end=' ')
     testset = Dataset(root=args.root, load_set=args.split, transform=transform_function, num_kps3d=num_kps3d, num_verts=num_verts)
     if is_sample_dataset:
-        print('Sub-dataset creation')
+        print('Sub-dataset creation ...', end=' ')
         subset_size = 10
         indices = list(range(subset_size))
         testset = Subset(testset, indices)
     testloader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size, shuffle=True, num_workers=2, collate_fn=ho3d_collate_fn)
     num_classes = 2
     graph_input='heatmaps'
+    print(f'✅ Evaluation data loaded.')
 
 use_cuda = False
 if torch.cuda.is_available():
     use_cuda = True
 
 # Define device
-device = torch.device(f'cuda:{args.gpu_number}' if torch.cuda.is_available() else 'cpu')
+try:
+    device = torch.device(f'cuda:{args.gpu_number}' if torch.cuda.is_available() else 'cpu')
+except:
+    args.gpu_number = 0
+    device = torch.device(f'cuda:{args.gpu_number}' if torch.cuda.is_available() else 'cpu')
 
 # Define model
 model = create_thor(pretrained=False, num_classes=num_classes, device=device,
@@ -183,7 +188,7 @@ except:
 
 model = model.eval()
 # print(model)
-print(f'🟢 Model "{pretrained_model}" loaded')
+print(f'🟢 Model "{pretrained_model.split(os.sep)[-2]}{os.sep}{pretrained_model.split(os.sep)[-1]}" loaded')
 
 keys = ['boxes', 'labels', 'keypoints', 'keypoints3d', 'mesh3d']
 if args.dataset_name == 'ho3d':

@@ -34,18 +34,18 @@ output_folder = args.output_file.rpartition(os.sep)[0]
 # print('-'*30)
 
 # DEBUG
-args.dataset_name = 'povsurgery' 
-args.root = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/povsurgery/object_False' 
-args.output_file = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-TEST--15-06-2024_11-17/model-' 
-output_folder = args.output_file.rpartition(os.sep)[0]
-if not os.path.exists(output_folder):
-    os.mkdir(output_folder) 
-args.batch_size = 1
-args.num_iteration = 3
-args.object = False 
-args.hid_size = 96
-args.pretrained_model='/content/THOR-Net/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-TEST--15-06-2024_11-17/model-18.pkl'
-args.hands_connectivity_type = 'base'
+# args.dataset_name = 'povsurgery' 
+# args.root = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/povsurgery/object_False' 
+# args.output_file = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-TEST--15-06-2024_11-17/model-' 
+# output_folder = args.output_file.rpartition(os.sep)[0]
+# if not os.path.exists(output_folder):
+#     os.mkdir(output_folder) 
+# args.batch_size = 1
+# args.num_iteration = 3
+# args.object = False 
+# args.hid_size = 96
+# args.pretrained_model='/content/THOR-Net/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-TEST--15-06-2024_11-17/model-18.pkl'
+# args.hands_connectivity_type = 'base'
 
 # Define device
 device = torch.device(f'cuda:{args.gpu_number[0]}' if torch.cuda.is_available() else 'cpu')
@@ -131,6 +131,7 @@ if torch.cuda.is_available():
 """ load saved model"""
 
 if args.pretrained_model != '':
+    print(f'🟢 Loading checkpoint "{args.pretrained_model.split(os.sep)[-2]}{os.sep}{args.pretrained_model.split(os.sep)[-1]}" ...')
     state_dict = torch.load(args.pretrained_model, map_location=device)
     try:
         model.load_state_dict(state_dict)
@@ -159,7 +160,7 @@ keys = ['boxes', 'labels', 'keypoints', 'keypoints3d', 'mesh3d', 'palm']
 
 print('🟢 Begin training the network')
 
-for epoch in range(start, args.num_iterations):  # loop over the dataset multiple times
+for epoch in range(start, start + args.num_iterations):  # loop over the dataset multiple times
     
     train_loss2d = 0.0
     running_loss2d = 0.0
@@ -176,7 +177,6 @@ for epoch in range(start, args.num_iterations):  # loop over the dataset multipl
         
         # get the inputs
         data_dict = tr_data
-        
         # zero the parameter gradients
         optimizer.zero_grad()
         
@@ -202,7 +202,7 @@ for epoch in range(start, args.num_iterations):  # loop over the dataset multipl
 
         if (i+1) % args.log_batch == 0:    # print every log_iter mini-batches
             logging.info('[Epoch %d/%d, Processed data %d/%d] loss 2d: %.4f, loss 3d: %.4f, mesh loss 3d: %.4f, photometric loss: %.4f' % 
-            (epoch + 1, args.num_iterations, i + 1, len(trainloader), running_loss2d / args.log_batch, running_loss3d / args.log_batch, 
+            (epoch + 1, start+args.num_iterations, i + 1, len(trainloader), running_loss2d / args.log_batch, running_loss3d / args.log_batch, 
             running_mesh_loss3d / args.log_batch, running_photometric_loss / args.log_batch))
             running_mesh_loss3d = 0.0
             running_loss2d = 0.0
@@ -263,9 +263,9 @@ for epoch in range(start, args.num_iterations):  # loop over the dataset multipl
         # model.module.transform.training = True
         
         logging.info('Epoch %d/%d - val loss 2d: %.4f, val loss 3d: %.4f, val mesh loss 3d: %.4f, val photometric loss: %.4f' % 
-                    (epoch + 1, args.num_iterations, val_loss2d / (v+1), val_loss3d / (v+1), val_mesh_loss3d / (v+1), val_photometric_loss / (v+1)))  
+                    (epoch + 1, start+args.num_iterations, val_loss2d / (v+1), val_loss3d / (v+1), val_mesh_loss3d / (v+1), val_photometric_loss / (v+1)))  
         print('Epoch %d/%d - val loss 2d: %.4f, val loss 3d: %.4f, val mesh loss 3d: %.4f, val photometric loss: %.4f' % 
-                    (epoch + 1, args.num_iterations, val_loss2d / (v+1), val_loss3d / (v+1), val_mesh_loss3d / (v+1), val_photometric_loss / (v+1)))  
+                    (epoch + 1, start+args.num_iterations, val_loss2d / (v+1), val_loss3d / (v+1), val_mesh_loss3d / (v+1), val_photometric_loss / (v+1)))  
     
     if args.freeze and epoch == 0:
         logging.info('Freezing Keypoint RCNN ..')            
