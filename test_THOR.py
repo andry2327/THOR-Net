@@ -27,22 +27,21 @@ args = parse_args_function()
 is_sample_dataset = True
 
 # DEBUG
-# args.testing = True
-# args.dataset_name = 'povsurgery'
-# args.root = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/povsurgery/object_False' 
-# args.checkpoint_model = '/content/THOR-Net/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-TEST--15-06-2024_11-17/model-18.pkl'
-# args.mano_root = '/content/drive/MyDrive/Thesis/mano_v1_2/models'
-# args.obj_root = '/content/THOR-Net/datasets/objects/mesh_1000/book.obj'
-# args.split = 'test'
-# args.seq = 'SM1'
-# args.seq = 'rgb' 
-# args.output_results = '/content/drive/MyDrive/Thesis/THOR-Net_based_work'
-# args.gpu_number = 0
-# args.batch_size = 1
-# args.hid_size = 96
-# args.photometric = True
-# args.hands_connectivity_type = 'base'
-# args.visualize = True
+args.testing = True
+args.dataset_name = 'TEST_DATASET' #TEST_DATASET
+args.root = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/povsurgery/object_False' 
+args.checkpoint_model = '/content/THOR-Net/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training--17-06-2024_13-52/model-10.pkl'
+args.mano_root = '/content/drive/MyDrive/Thesis/mano_v1_2/models'
+args.obj_root = '/content/THOR-Net/datasets/objects/mesh_1000/book.obj'
+args.split = 'test'
+args.seq = 'd_diskplacer_1/00178'
+args.output_results = '/content/drive/MyDrive/Thesis/THOR-Net_based_work'
+args.gpu_number = 0
+args.batch_size = 1
+args.hid_size = 96
+args.photometric = True
+args.hands_connectivity_type = 'base'
+args.visualize = True
 # --object \
     
 print(f'args:')
@@ -136,6 +135,13 @@ if args.dataset_name == 'h2o':
     testloader = torch.utils.data.DataLoader(datapipe, batch_size=args.batch_size, num_workers=2, shuffle=True)
     num_classes = 4
     graph_input='coords'
+elif 'TEST_DATASET': # DEBUG
+    print(f'🟠 Using custom test dataset')
+    args.split='train'
+    testset = Dataset(root=args.root, load_set=args.split, transform=transform_function, num_kps3d=num_kps3d, num_verts=num_verts)
+    testloader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size, shuffle=False, num_workers=2, collate_fn=ho3d_collate_fn)
+    num_classes = 2
+    graph_input='heatmaps'
 else:
     print(f'Loading evaluation data ...', end=' ')
     testset = Dataset(root=args.root, load_set=args.split, transform=transform_function, num_kps3d=num_kps3d, num_verts=num_verts)
@@ -148,7 +154,7 @@ else:
     num_classes = 2
     graph_input='heatmaps'
     print(f'✅ Evaluation data loaded.')
-
+    
 use_cuda = False
 if torch.cuda.is_available():
     use_cuda = True
@@ -201,8 +207,8 @@ output_dicts = ({}, {})
 
 evaluate = False
 errors = [[], [], [], [], [], []]
-if args.split == 'test' or (args.dataset_name == 'h2o' and args.split == 'test'):  
-    evaluate = True  
+# if args.split == 'test' or (args.dataset_name == 'h2o' and args.split == 'test'):  
+evaluate = True  
 
 # rgb_errors = []
 
@@ -210,14 +216,14 @@ for i, ts_data in tqdm(enumerate(testloader), total=len(testloader), desc='Evalu
     
     data_dict = ts_data
     path = data_dict[0]['path'].split(os.sep)[-1]
-    if args.dataset_name=='ho3d':
+    if args.dataset_name=='ho3d' or args.dataset_name=='TEST_DATASET': # choose specific sequence to evaluate
         if args.seq not in data_dict[0]['path']:
             continue
         if '_' in path:
             path = path.split('_')[-1]
         frame_num = int(path.split('.')[0])
     elif args.dataset_name=='povsurgery':
-        seq = data_dict[0]['path'].split(os.sep)[-2]
+        seq_name = data_dict[0]['path'].split(os.sep)[-2]
     else:
         pass
         

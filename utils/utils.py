@@ -62,7 +62,7 @@ def calculate_keypoints(dataset_name, obj):
         num_verts = 1778 if obj else 778
         num_kps3d = 29 if obj else 21
         num_kps2d = 29 if obj else 21
-    elif dataset_name == 'povsurgery':
+    elif dataset_name == 'povsurgery' or 'TEST_DATASET':
         num_verts = 778
         num_kps3d = 29 if obj else 21
         num_kps2d = 29 if obj else 21
