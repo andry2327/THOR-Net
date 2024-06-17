@@ -24,12 +24,13 @@ warnings.filterwarnings('ignore')
 
 # Input parameters
 args = parse_args_function()
+is_sample_dataset = True
 
 # DEBUG
 args.testing = True
 args.dataset_name = 'povsurgery'
 args.root = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/povsurgery/object_False' 
-args.checkpoint_model = '/content/THOR-Net/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training_sample--13-06-2024_15-22/model-1.pkl'
+args.checkpoint_model = '/content/THOR-Net/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-TEST--15-06-2024_11-17/model-18.pkl'
 args.mano_root = '/content/drive/MyDrive/Thesis/mano_v1_2/models'
 args.obj_root = '/content/THOR-Net/datasets/objects/mesh_1000/book.obj'
 args.split = 'test'
@@ -138,6 +139,11 @@ if args.dataset_name == 'h2o':
 else:
 
     testset = Dataset(root=args.root, load_set=args.split, transform=transform_function, num_kps3d=num_kps3d, num_verts=num_verts)
+    if is_sample_dataset:
+        print('Sub-dataset creation')
+        subset_size = 10
+        indices = list(range(subset_size))
+        testset = Subset(testset, indices)
     testloader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size, shuffle=True, num_workers=2, collate_fn=ho3d_collate_fn)
     num_classes = 2
     graph_input='heatmaps'
@@ -233,7 +239,6 @@ for i, ts_data in tqdm(enumerate(testloader), total=len(testloader), desc='Evalu
     ### Evaluation
     if evaluate:
         c = save_calculate_error(predictions, labels, path, errors, output_dicts, c, num_classes, args.dataset_name, obj=args.object, generate_mesh=True)
-
     # if i == 10:
     #     break
 
