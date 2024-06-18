@@ -30,11 +30,11 @@ is_sample_dataset = True
 args.testing = True
 args.dataset_name = 'TEST_DATASET' # TEST_DATASET, povsurgery, ho3d
 args.root = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/povsurgery/object_False' 
-args.checkpoint_model = '/content/THOR-Net/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training--17-06-2024_13-52/model-10.pkl'
+args.checkpoint_model = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-1sample-OF--18-06-2024_11-09/model-41.pkl'
 args.mano_root = '/content/drive/MyDrive/Thesis/mano_v1_2/models'
 args.obj_root = '/content/THOR-Net/datasets/objects/mesh_1000/book.obj'
 args.split = 'test'
-args.seq = 'd_diskplacer_1/00178'
+args.seq = 'd_diskplacer_1/00145'
 args.output_results = '/content/drive/MyDrive/Thesis/THOR-Net_based_work'
 args.gpu_number = 0
 args.batch_size = 1
@@ -169,6 +169,7 @@ except:
     device = torch.device(f'cuda:{args.gpu_number}' if torch.cuda.is_available() else 'cpu')
 
 # Define model
+torch.cuda.empty_cache()
 model = create_thor(pretrained=False, num_classes=num_classes, device=device,
                                 num_kps2d=num_kps2d, num_kps3d=num_kps3d, num_verts=num_verts,
                                 rpn_post_nms_top_n_test=num_classes-1, 

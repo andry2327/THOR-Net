@@ -74,18 +74,19 @@ def plot_losses(log_file, out_path=''):
     axs[1].grid(True)
     axs[1].tick_params(axis='x', rotation=45)
 
-    plt.tight_layout()
+    file_name = f'Loss_plots--{log_file.split(os.sep)[-1].strip(".txt")}.png'
     if not os.path.exists(out_path):
         os.mkdir(out_path)
-    path_out = f'{out_path}{os.sep}Loss_plots--{log_file.split(os.sep)[-1].strip(".txt")}.png' 
-    plt.savefig(path_out, dpi=300)
-    print(f'Plots saved in "{path_out}.png"')
+    path_out = os.path.join(out_path, file_name)
+    print(f'Plots saved in "{path_out}"')
+    plt.tight_layout()
     plt.show()
+    plt.savefig(path_out, dpi=200)
 
 def main():
     parser = argparse.ArgumentParser(description='Plot training and validation losses from log file.')
     parser.add_argument('--log_file', type=str, help='Path to the log file')
-    parser.add_argument('--output_path', type=str, help='Path where to save plots')
+    parser.add_argument('--output_path', required=False, type=str, help='Path where to save plots')
     args = parser.parse_args()
     
     plot_losses(args.log_file, args.output_path)

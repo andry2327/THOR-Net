@@ -134,16 +134,19 @@ def create_edges(seq_length=1, num_nodes=29, connectivity_type=''):
             additional_edges_4 = [list(x) for x in itertools.combinations(joints_pairs_4, 2)]
             initial_edges.extend(additional_edges_4)
             
-            initial_edges = list(set(initial_edges)) # remove duplicates edges
+            # Convert list of lists to list of tuples to remove duplicates
+            initial_edges = list(set(tuple(edge) for edge in initial_edges))
+            initial_edges = [list(edge) for edge in initial_edges]   
         elif connectivity_type == 'full':
             
             # Add full connections between every finger
             
             joints = [2, 3, 4, 6, 7, 8, 10, 11, 12, 14, 15, 16, 18, 19, 20]
-            additional_edges = [list(x) for x in itertools.combinations(joints_pairs_4, 2)]
+            additional_edges = [list(x) for x in itertools.combinations(joints, 2)]
             initial_edges.extend(additional_edges)
-            
-            initial_edges = list(set(initial_edges)) # remove duplicates edges    
+            # Convert list of lists to list of tuples to remove duplicates
+            initial_edges = list(set(tuple(edge) for edge in initial_edges))
+            initial_edges = [list(edge) for edge in initial_edges]   
         else:
             pass
             
