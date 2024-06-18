@@ -61,7 +61,3 @@ def plot_losses(log_file):
     plt.xticks(rotation=45)
     plt.tight_layout()
     plt.show()
-
-# Example usage
-log_file = 'path_to_your_log_file.log'
-plot_losses(log_file)

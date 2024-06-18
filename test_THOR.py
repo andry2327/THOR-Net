@@ -28,7 +28,7 @@ is_sample_dataset = True
 
 # DEBUG
 args.testing = True
-args.dataset_name = 'TEST_DATASET' #TEST_DATASET
+args.dataset_name = 'TEST_DATASET' # TEST_DATASET, povsurgery, ho3d
 args.root = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/povsurgery/object_False' 
 args.checkpoint_model = '/content/THOR-Net/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training--17-06-2024_13-52/model-10.pkl'
 args.mano_root = '/content/drive/MyDrive/Thesis/mano_v1_2/models'
@@ -138,10 +138,12 @@ if args.dataset_name == 'h2o':
 elif 'TEST_DATASET': # DEBUG
     print(f'🟠 Using custom test dataset')
     args.split='train'
+    print(f'Loading TEST_DATASET data ...', end=' ')
     testset = Dataset(root=args.root, load_set=args.split, transform=transform_function, num_kps3d=num_kps3d, num_verts=num_verts)
     testloader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size, shuffle=False, num_workers=2, collate_fn=ho3d_collate_fn)
     num_classes = 2
     graph_input='heatmaps'
+    print(f'✅ TEST_DATASET data loaded.')
 else:
     print(f'Loading evaluation data ...', end=' ')
     testset = Dataset(root=args.root, load_set=args.split, transform=transform_function, num_kps3d=num_kps3d, num_verts=num_verts)

@@ -2,11 +2,11 @@ import torch
 import numpy as np
 import pickle
 import torchvision.transforms as transforms
-
 # for H2O dataset only
 # from .h2o_utils.h2o_datapipe_pt_1_12 import create_datapipe
 from .dataset import Dataset
 from torch.utils.data import Subset
+from tqdm import tqdm
     
 
 def ho3d_collate_fn(batch):
@@ -40,7 +40,24 @@ def create_loader(dataset_name, root, split, batch_size, num_kps3d=21, num_verts
         datapipe = create_datapipe(input_tar_lists, annotation_tar_files, annotation_components, shuffle_buffer_size)
         datapipe = datapipe.map(fn=my_preprocessor)
         loader = torch.utils.data.DataLoader(datapipe, batch_size=batch_size, num_workers=2, shuffle=True)
-
+    elif dataset_name == 'TEST_DATASET':
+        seq = 'd_diskplacer_1/00145'
+        print(f'Using custom train-val dataset ({seq}) ...', end=' ')
+        split = 'train'
+        dataset = Dataset(root=root, load_set=split, transform=transform, num_kps3d=num_kps3d, num_verts=num_verts)
+        print(f'dataset loaded ({seq}) ...', end=' ')
+        pbar = tqdm(total=len(dataset))
+        for i, x in enumerate(dataset):
+            if seq in x['path']:
+                print(f'seq {seq} found')
+                indices = [i]
+                pbar.close()
+                break
+            else:
+                pbar.update(1)
+        print(f'ind for "{seq}" found ...', end=' ')
+        dataset = Subset(dataset, indices)
+        loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=2, collate_fn=ho3d_collate_fn)
     else:
         dataset = Dataset(root=root, load_set=split, transform=transform, num_kps3d=num_kps3d, num_verts=num_verts)
         if is_sample_dataset:
