@@ -34,19 +34,19 @@ output_folder = args.output_file.rpartition(os.sep)[0]
 # print('-'*30)
 
 # DEBUG
-args.dataset_name = 'TEST_DATASET' 
-args.root = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/povsurgery/object_False' 
-args.output_file = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-1sample-OF--18-06-2024_11-09/model-' 
-output_folder = args.output_file.rpartition(os.sep)[0]
-if not os.path.exists(output_folder):
-    os.mkdir(output_folder) 
-args.batch_size = 1
-args.num_iteration = 5
-args.object = False 
-args.hid_size = 96
-args.log_batch = 1
-args.pretrained_model='/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training--17-06-2024_13-52/model-10.pkl'
-args.hands_connectivity_type = 'base'
+# args.dataset_name = 'TEST_DATASET' 
+# args.root = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/povsurgery/object_False' 
+# args.output_file = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-1sample-OF--18-06-2024_11-09/model-' 
+# output_folder = args.output_file.rpartition(os.sep)[0]
+# if not os.path.exists(output_folder):
+#     os.mkdir(output_folder) 
+# args.batch_size = 1
+# args.num_iteration = 5
+# args.object = False 
+# args.hid_size = 96
+# args.log_batch = 1
+# args.pretrained_model='/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training--17-06-2024_13-52/model-10.pkl'
+# args.hands_connectivity_type = 'base'
 
 # Define device
 device = torch.device(f'cuda:{args.gpu_number[0]}' if torch.cuda.is_available() else 'cpu')
