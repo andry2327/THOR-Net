@@ -1,12 +1,11 @@
 import re
 import matplotlib.pyplot as plt
+import argparse
+import os
 
 def parse_logs(log_file):
-    epoch_pattern = re.compile(r'Epoch (\d+/\d+)')
-    loss_pattern = re.compile(r'loss 2d: (\d+\.\d+), loss 3d: ([\d\.]+), mesh loss 3d: ([\d\.]+), photometric loss: ([\d\.]+)')
-    val_loss_pattern = re.compile(r'val loss 2d: (\d+\.\d+), val loss 3d: ([\d\.]+), val mesh loss 3d: ([\d\.]+), val photometric loss: ([\d\.]+)')
     
-    epochs = []
+    epochs_train, val_epochs = [], []
     losses_2d = []
     losses_3d = []
     mesh_losses_3d = []
@@ -18,46 +17,80 @@ def parse_logs(log_file):
     
     with open(log_file, 'r') as f:
         for line in f:
-            epoch_match = epoch_pattern.search(line)
-            loss_match = loss_pattern.search(line)
-            val_loss_match = val_loss_pattern.search(line)
             
-            if epoch_match:
-                epochs.append(epoch_match.group(1))
+            if '--' not in line and 'Epoch' in line and '[' in line and ']' in line: # train loss
+                line_splitted = line.split(' ')
+                epoch = int(line_splitted[1].split('/')[0])
+                loss_2d = float(line_splitted[7].strip(','))
+                loss_3d = float(line_splitted[10].strip(','))
+                mesh_loss_3d = float(line_splitted[14].strip(','))
+                photometric = float(line_splitted[17].strip('\n'))
+                epochs_train.append(epoch)
+                losses_2d.append(loss_2d)
+                losses_3d.append(loss_3d)
+                mesh_losses_3d.append(mesh_loss_3d)
+                photometric_losses.append(photometric)
+            elif '--' not in line and 'Epoch' in line and '[' not in line and ']' not in line: # val loss
+                line_splitted = line.split(' ')
+                epoch = int(line_splitted[1].split('/')[0])
+                loss_2d = float(line_splitted[6].strip(','))
+                loss_3d = float(line_splitted[10].strip(','))
+                mesh_loss_3d = float(line_splitted[15].strip(','))
+                photometric = float(line_splitted[19].strip('\n'))
+                val_epochs.append(epoch)
+                val_losses_2d.append(loss_2d)
+                val_losses_3d.append(loss_3d)
+                val_mesh_losses_3d.append(mesh_loss_3d)
+                val_photometric_losses.append(photometric)
                 
-            if loss_match:
-                losses_2d.append(float(loss_match.group(1)))
-                losses_3d.append(float(loss_match.group(2)))
-                mesh_losses_3d.append(float(loss_match.group(3)))
-                photometric_losses.append(float(loss_match.group(4)))
-                
-            if val_loss_match:
-                val_losses_2d.append(float(val_loss_match.group(1)))
-                val_losses_3d.append(float(val_loss_match.group(2)))
-                val_mesh_losses_3d.append(float(val_loss_match.group(3)))
-                val_photometric_losses.append(float(val_loss_match.group(4)))
-                
-    return epochs, losses_2d, losses_3d, mesh_losses_3d, photometric_losses, val_losses_2d, val_losses_3d, val_mesh_losses_3d, val_photometric_losses
+    return epochs_train, val_epochs, losses_2d, losses_3d, mesh_losses_3d, photometric_losses, val_losses_2d, val_losses_3d, val_mesh_losses_3d, val_photometric_losses
 
-def plot_losses(log_file):
-    epochs, losses_2d, losses_3d, mesh_losses_3d, photometric_losses, val_losses_2d, val_losses_3d, val_mesh_losses_3d, val_photometric_losses = parse_logs(log_file)
+def plot_losses(log_file, out_path=''):
+    epochs_train, val_epochs, losses_2d, losses_3d, mesh_losses_3d, photometric_losses, val_losses_2d, val_losses_3d, val_mesh_losses_3d, val_photometric_losses = parse_logs(log_file)
     
-    plt.figure(figsize=(12, 8))
-    
-    plt.plot(epochs, losses_2d, label='Loss 2D', marker='o')
-    plt.plot(epochs, losses_3d, label='Loss 3D', marker='o')
-    plt.plot(epochs, mesh_losses_3d, label='Mesh Loss 3D', marker='o')
-    plt.plot(epochs, photometric_losses, label='Photometric Loss', marker='o')
-    plt.plot(epochs, val_losses_2d, label='Validation Loss 2D', marker='x')
-    plt.plot(epochs, val_losses_3d, label='Validation Loss 3D', marker='x')
-    plt.plot(epochs, val_mesh_losses_3d, label='Validation Mesh Loss 3D', marker='x')
-    plt.plot(epochs, val_photometric_losses, label='Validation Photometric Loss', marker='x')
-    
-    plt.xlabel('Epochs')
-    plt.ylabel('Loss')
-    plt.title('Training and Validation Losses')
-    plt.legend()
-    plt.grid(True)
-    plt.xticks(rotation=45)
+    fig, axs = plt.subplots(2, 1, figsize=(12, 16))
+
+    # Plot training losses
+    axs[0].plot(losses_2d, label='Loss 2D', marker='o')
+    axs[0].plot(losses_3d, label='Loss 3D', marker='o')
+    axs[0].plot(mesh_losses_3d, label='Mesh Loss 3D', marker='o')
+    axs[0].plot(photometric_losses, label='Photometric Loss', marker='o')
+    axs[0].set_xlabel('Parsed Files')
+    axs[0].set_ylabel('Loss')
+    axs[0].set_title('Training Losses')
+    axs[0].legend()
+    axs[0].grid(True)
+    axs[0].tick_params(axis='x', rotation=45)
+
+    # Plot validation losses
+    axs[1].plot(val_epochs, val_losses_2d, label='Validation Loss 2D', marker='x')
+    axs[1].plot(val_epochs, val_losses_3d, label='Validation Loss 3D', marker='x')
+    axs[1].plot(val_epochs, val_mesh_losses_3d, label='Validation Mesh Loss 3D', marker='x')
+    axs[1].plot(val_epochs, val_photometric_losses, label='Validation Photometric Loss', marker='x')
+    axs[1].set_xlabel('Epochs')
+    axs[1].set_ylabel('Loss')
+    axs[1].set_title('Validation Losses')
+    axs[1].legend()
+    axs[1].grid(True)
+    axs[1].tick_params(axis='x', rotation=45)
+
     plt.tight_layout()
+    if not os.path.exists(out_path):
+        os.mkdir(out_path)
+    path_out = f'{out_path}{os.sep}Loss_plots--{log_file.split(os.sep)[-1].strip(".txt")}.png' 
+    plt.savefig(path_out, dpi=300)
+    print(f'Plots saved in "{path_out}.png"')
     plt.show()
+
+def main():
+    parser = argparse.ArgumentParser(description='Plot training and validation losses from log file.')
+    parser.add_argument('--log_file', type=str, help='Path to the log file')
+    parser.add_argument('--output_path', type=str, help='Path where to save plots')
+    args = parser.parse_args()
+    
+    plot_losses(args.log_file, args.output_path)
+    # file = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training--17-06-2024_13-52/log_Training--17-06-2024_13-52.txt'
+    # plot_losses(file)
+
+if __name__ == "__main__":
+    main()
