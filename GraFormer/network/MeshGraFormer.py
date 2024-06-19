@@ -52,7 +52,7 @@ class MeshGraFormer(nn.Module):
         self.num_points_levels = 3
         self.adj_matrix_root = adj_matrix_root
 
-        hid_dim_list = [hid_dim, hid_dim // 4, hid_dim // 16, coords_dim[1]]
+        hid_dim_list = [hid_dim, hid_dim // 4, hid_dim // 16, 6] # 6: HARD-CODED FIX, it was coords_dim[1] before
 
         level1 = round(num_verts / 16)    
         
