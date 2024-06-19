@@ -188,10 +188,10 @@ for epoch in range(start, start + args.num_iterations):  # loop over the dataset
         # Forward
         targets = [{k: v.to(device) for k, v in t.items() if k in keys} for t in data_dict]
         inputs = [t['inputs'].to(device) for t in data_dict]
-        loss_dict = model(inputs, targets)
+        loss_dict, result  = model(inputs, targets)
         
         # Calculate Loss
-        loss = sum(loss for _, loss in loss_dict.items())
+        loss = sum(loss_dict.values())
         
         # Backpropagate
         loss.backward()

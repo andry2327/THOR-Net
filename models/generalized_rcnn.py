@@ -45,13 +45,6 @@ class GeneralizedRCNN(nn.Module):
         Args:
             images (list[Tensor]): images to be processed
             targets (list[Dict[Tensor]]): ground-truth boxes present in the image (optional)
-
-        Returns:
-            result (list[BoxList] or dict[Tensor]): the output from the model.
-                During training, it returns a dict[Tensor] which contains the losses.
-                During testing, it returns list[BoxList] contains additional fields
-                like `scores`, `labels` and `mask` (for Mask R-CNN models).
-
         """
         if self.training and targets is None:
             raise ValueError("In training mode, targets should be passed")
@@ -107,6 +100,4 @@ class GeneralizedRCNN(nn.Module):
             if not self._has_warned:
                 warnings.warn("RCNN always returns a (Losses, Detections) tuple in scripting")
                 self._has_warned = True
-            return losses, detections
-        else:
-            return self.eager_outputs(losses, detections)
+        return losses, detections
