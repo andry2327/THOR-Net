@@ -36,17 +36,18 @@ output_folder = args.output_file.rpartition(os.sep)[0]
 # DEBUG
 args.dataset_name = 'povsurgery' 
 args.root = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/povsurgery/object_False' 
-args.output_file = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-1sample-OF--18-06-2024_11-09/model-' 
+args.output_file = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-100samples--20-06-2024_15-24/model-' 
 output_folder = args.output_file.rpartition(os.sep)[0]
 if not os.path.exists(output_folder):
     os.mkdir(output_folder) 
 args.batch_size = 1
-args.num_iteration = 5
+args.num_iteration = 20
 args.object = False 
 args.hid_size = 96
 args.photometric = True
-args.log_batch = 1
-args.pretrained_model='/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-1sample-OF--18-06-2024_11-09/model-41.pkl'
+args.log_batch = 1 # frequency to print training losses
+args.val_epoch = 1 # frequency to compute validation loss
+args.pretrained_model=''#'/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-1sample-OF--18-06-2024_11-09/model-41.pkl'
 args.hands_connectivity_type = 'base'
 
 IS_SAMPLE_DATASET = True
@@ -129,7 +130,7 @@ model = create_thor(num_kps2d=num_kps2d, num_kps3d=num_kps3d, num_verts=num_vert
                                 photometric=args.photometric, graph_input=graph_input, dataset_name=args.dataset_name, testing=args.testing,
                                 hands_connectivity_type=args.hands_connectivity_type)
 
-print('🟢 THOR-Net is loaded')
+print('THOR-Net is loaded')
 
 if torch.cuda.is_available():
     model = model.cuda(args.gpu_number[0])
@@ -167,7 +168,7 @@ keys = ['boxes', 'labels', 'keypoints', 'keypoints3d', 'mesh3d', 'palm']
 
 print('🟢 Begin training the network')
 
-min_total_loss = np.float('inf')
+min_total_loss = float('inf')
 
 for epoch in range(start, start + args.num_iterations):  # loop over the dataset multiple times
     
@@ -208,7 +209,6 @@ for epoch in range(start, start + args.num_iterations):  # loop over the dataset
         running_mesh_loss3d += loss_dict['loss_mesh3d'].data
         if 'loss_photometric' in loss_dict.keys():
             running_photometric_loss += loss_dict['loss_photometric'].data
-        total_loss = train_loss2d + running_loss2d + running_loss3d + running_mesh_loss3d + running_photometric_loss
 
         if (i+1) % args.log_batch == 0:    # print every args.log_iter mini-batches
             logging.info('[Epoch %d/%d, Processed data %d/%d] loss 2d: %.4f, loss 3d: %.4f, mesh loss 3d: %.4f, photometric loss: %.4f' % 
@@ -224,10 +224,10 @@ for epoch in range(start, start + args.num_iterations):  # loop over the dataset
     
     losses.append((train_loss2d / (i+1)).cpu().numpy())
     
-    if (epoch+1) % args.snapshot_epoch == 0 and total_loss < min_total_loss: # save model only if total loss is lower than minimum reached
+    if (epoch+1) % args.snapshot_epoch == 0 and loss.data < min_total_loss: # save model only if total loss is lower than minimum reached
         torch.save(model.state_dict(), args.output_file+str(epoch+1)+'.pkl')
         np.save(args.output_file+str(epoch+1)+'-losses.npy', np.array(losses))
-        print(f'Model checkpoint (epoch {epoch+1}) saved in "{args.output_file}"')
+        print(f'Model checkpoint (epoch {epoch+1}) saved in "{output_folder}"')
         # delete files from older epochs
         if epoch+1 > 1:
             files_to_delete = [x for x in os.listdir(output_folder) if f'model-' in x and f'model-{epoch+1}' not in x]
@@ -236,6 +236,7 @@ for epoch in range(start, start + args.num_iterations):  # loop over the dataset
                     os.remove(os.path.join(output_folder, file))
                 except:
                     pass
+        min_total_loss = loss.data
         
 
     if (epoch+1) % args.val_epoch == 0:
