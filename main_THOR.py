@@ -167,6 +167,8 @@ keys = ['boxes', 'labels', 'keypoints', 'keypoints3d', 'mesh3d', 'palm']
 
 print('🟢 Begin training the network')
 
+min_total_loss = np.float('inf')
+
 for epoch in range(start, start + args.num_iterations):  # loop over the dataset multiple times
     
     train_loss2d = 0.0
@@ -206,8 +208,9 @@ for epoch in range(start, start + args.num_iterations):  # loop over the dataset
         running_mesh_loss3d += loss_dict['loss_mesh3d'].data
         if 'loss_photometric' in loss_dict.keys():
             running_photometric_loss += loss_dict['loss_photometric'].data
+        total_loss = train_loss2d + running_loss2d + running_loss3d + running_mesh_loss3d + running_photometric_loss
 
-        if (i+1) % args.log_batch == 0:    # print every log_iter mini-batches
+        if (i+1) % args.log_batch == 0:    # print every args.log_iter mini-batches
             logging.info('[Epoch %d/%d, Processed data %d/%d] loss 2d: %.4f, loss 3d: %.4f, mesh loss 3d: %.4f, photometric loss: %.4f' % 
             (epoch + 1, start+args.num_iterations, i + 1, len(trainloader), running_loss2d / args.log_batch, running_loss3d / args.log_batch, 
             running_mesh_loss3d / args.log_batch, running_photometric_loss / args.log_batch))
@@ -221,13 +224,13 @@ for epoch in range(start, start + args.num_iterations):  # loop over the dataset
     
     losses.append((train_loss2d / (i+1)).cpu().numpy())
     
-    if (epoch+1) % args.snapshot_epoch == 0:
+    if (epoch+1) % args.snapshot_epoch == 0 and total_loss < min_total_loss: # save model only if total loss is lower than minimum reached
         torch.save(model.state_dict(), args.output_file+str(epoch+1)+'.pkl')
         np.save(args.output_file+str(epoch+1)+'-losses.npy', np.array(losses))
         print(f'Model checkpoint (epoch {epoch+1}) saved in "{args.output_file}"')
         # delete files from older epochs
         if epoch+1 > 1:
-            files_to_delete = [x for x in os.listdir(output_folder) if f'model-{epoch}' in x]
+            files_to_delete = [x for x in os.listdir(output_folder) if f'model-' in x and f'model-{epoch+1}' not in x]
             for file in files_to_delete:
                 try:
                     os.remove(os.path.join(output_folder, file))
