@@ -402,6 +402,20 @@ class RoIHeads(nn.Module):
                 if rcnn_loss_photometric is not None:
                     loss_keypoint['loss_photometric'] = rcnn_loss_photometric
 
+                # For visualizations during training-validation only
+                boxes, scores, labels = self.postprocess_detections(class_logits, box_regression, proposals, image_shapes)
+                num_images = len(boxes)
+                for i in range(num_images):
+                    result.append(
+                        {
+                            "boxes": boxes[i],
+                            "labels": labels[i],
+                            "scores": scores[i],
+                            "keypoints3d": keypoint3d[i],
+                            "mesh3d": mesh3d[i]  
+                        }
+                    )  
+                    
             else:
                 assert keypoint_logits is not None
                 assert keypoint_proposals is not None
@@ -411,7 +425,7 @@ class RoIHeads(nn.Module):
                     r["keypoints"] = keypoint_prob
                     r["keypoints_scores"] = kps
                     r["keypoints3d"] = keypoint3d
-                    r["mesh3d"] = mesh3d        
+                    r["mesh3d"] = mesh3d       
 
             losses.update(loss_keypoint)
 
