@@ -34,20 +34,22 @@ output_folder = args.output_file.rpartition(os.sep)[0]
 # print('-'*30)
 
 # DEBUG
-# args.dataset_name = 'TEST_DATASET' 
-# args.root = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/povsurgery/object_False' 
-# args.output_file = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-1sample-OF--18-06-2024_11-09/model-' 
-# output_folder = args.output_file.rpartition(os.sep)[0]
-# if not os.path.exists(output_folder):
-#     os.mkdir(output_folder) 
-# args.batch_size = 1
-# args.num_iteration = 5
-# args.object = False 
-# args.hid_size = 96
-# args.photometric = True
-# args.log_batch = 1
-# args.pretrained_model='/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-1sample-OF--18-06-2024_11-09/model-41.pkl'
-# args.hands_connectivity_type = 'base'
+args.dataset_name = 'povsurgery' 
+args.root = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/povsurgery/object_False' 
+args.output_file = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-1sample-OF--18-06-2024_11-09/model-' 
+output_folder = args.output_file.rpartition(os.sep)[0]
+if not os.path.exists(output_folder):
+    os.mkdir(output_folder) 
+args.batch_size = 1
+args.num_iteration = 5
+args.object = False 
+args.hid_size = 96
+args.photometric = True
+args.log_batch = 1
+args.pretrained_model='/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-1sample-OF--18-06-2024_11-09/model-41.pkl'
+args.hands_connectivity_type = 'base'
+
+IS_SAMPLE_DATASET = True
 
 # Define device
 device = torch.device(f'cuda:{args.gpu_number[0]}' if torch.cuda.is_available() else 'cpu')
@@ -109,12 +111,12 @@ if args.dataset_name.lower() == 'h2o':
     graph_input = 'coords'
 else: # i.e. HO3D, POV-Surgery
     print(f'Loading training data ...', end=' ')
-    trainloader = create_loader(args.dataset_name, args.root, 'train', batch_size=args.batch_size, num_kps3d=num_kps3d, num_verts=num_verts, is_sample_dataset=True)
+    trainloader = create_loader(args.dataset_name, args.root, 'train', batch_size=args.batch_size, num_kps3d=num_kps3d, num_verts=num_verts, is_sample_dataset=IS_SAMPLE_DATASET)
     print(f'✅ Training data loaded.')
     print(f'Loading validation data ...', end=' ')
     # DEBUG
-    valloader = trainloader # DEBUG
-    # valloader = create_loader(args.dataset_name, args.root, 'val', batch_size=args.batch_size, is_sample_dataset=True)
+    # valloader = trainloader # DEBUG
+    valloader = create_loader(args.dataset_name, args.root, 'val', batch_size=args.batch_size, is_sample_dataset=IS_SAMPLE_DATASET)
     print(f'✅ Validation data loaded.')
     num_classes = 2 
     graph_input = 'heatmaps'
