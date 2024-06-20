@@ -34,21 +34,21 @@ output_folder = args.output_file.rpartition(os.sep)[0]
 # print('-'*30)
 
 # DEBUG
-args.dataset_name = 'povsurgery' 
-args.root = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/povsurgery/object_False' 
-args.output_file = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-100samples--20-06-2024_15-24/model-' 
-output_folder = args.output_file.rpartition(os.sep)[0]
-if not os.path.exists(output_folder):
-    os.mkdir(output_folder) 
-args.batch_size = 1
-args.num_iteration = 20
-args.object = False 
-args.hid_size = 96
-args.photometric = True
-args.log_batch = 1 # frequency to print training losses
-args.val_epoch = 1 # frequency to compute validation loss
-args.pretrained_model=''#'/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-1sample-OF--18-06-2024_11-09/model-41.pkl'
-args.hands_connectivity_type = 'base'
+# args.dataset_name = 'povsurgery' 
+# args.root = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/povsurgery/object_False' 
+# args.output_file = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-100samples--20-06-2024_15-24/model-' 
+# output_folder = args.output_file.rpartition(os.sep)[0]
+# if not os.path.exists(output_folder):
+#     os.mkdir(output_folder) 
+# args.batch_size = 1
+# args.num_iteration = 20
+# args.object = False 
+# args.hid_size = 96
+# args.photometric = True
+# args.log_batch = 1 # frequency to print training losses
+# args.val_epoch = 1 # frequency to compute validation loss
+# args.pretrained_model=''#'/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-1sample-OF--18-06-2024_11-09/model-41.pkl'
+# args.hands_connectivity_type = 'base'
 
 IS_SAMPLE_DATASET = True
 
@@ -193,7 +193,7 @@ for epoch in range(start, start + args.num_iterations):  # loop over the dataset
         # Forward
         targets = [{k: v.to(device) for k, v in t.items() if k in keys} for t in data_dict]
         inputs = [t['inputs'].to(device) for t in data_dict]
-        loss_dict, result  = model(inputs, targets)
+        loss_dict, result = model(inputs, targets)
         
         # Calculate Loss
         loss = sum(loss_dict.values())
@@ -260,7 +260,7 @@ for epoch in range(start, start + args.num_iterations):  # loop over the dataset
             # wrap them in Variable
             targets = [{k: v.to(device) for k, v in t.items() if k in keys} for t in data_dict]
             inputs = [t['inputs'].to(device) for t in data_dict]    
-            loss_dict = model(inputs, targets)
+            loss_dict, result = model(inputs, targets)
             
             val_loss2d += loss_dict['loss_keypoint'].data
             val_loss3d += loss_dict['loss_keypoint3d'].data
