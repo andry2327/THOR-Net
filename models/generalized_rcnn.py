@@ -7,7 +7,13 @@ import torch
 from torch import nn, Tensor
 import warnings
 from typing import Tuple, List, Dict, Optional, Union
+from utils.utils_shared import trainloader_dict, valloader_dict
+import os
 
+'------------------ INPUT PARAMETERS for MULTI-FRAME features ------------------'
+N_PREVIOUS_FRAMES = 3
+STRIDE_PREVIOUS_FRAMES = 3
+'-------------------------------------------------------------------------------'
 
 class GeneralizedRCNN(nn.Module):
     """
@@ -22,7 +28,7 @@ class GeneralizedRCNN(nn.Module):
             the model
     """
 
-    def __init__(self, backbone, rpn, roi_heads, transform):
+    def __init__(self, backbone, rpn, roi_heads, transform, multiframe):
         super(GeneralizedRCNN, self).__init__()
         self.transform = transform
         self.backbone = backbone
@@ -30,6 +36,7 @@ class GeneralizedRCNN(nn.Module):
         self.roi_heads = roi_heads
         # used only on torchscript mode
         self._has_warned = False
+        self.multiframe = multiframe
 
     @torch.jit.unused
     def eager_outputs(self, losses, detections):
@@ -60,7 +67,10 @@ class GeneralizedRCNN(nn.Module):
                 else:
                     raise ValueError("Expected target boxes to be of type "
                                      "Tensor, got {:}.".format(type(boxes)))
-
+        
+        paths = images['paths']
+        images = images['inputs']
+        
         original_image_sizes: List[Tuple[int, int]] = []
         for img in images:
             val = img.shape[-2:]
@@ -85,7 +95,18 @@ class GeneralizedRCNN(nn.Module):
                                      " Found invalid box {} for target at index {}."
                                      .format(degen_bb, target_idx))
 
+        print(f'multiframe = {self.multiframe}') # DEBUG
         features = self.backbone(images.tensors) # extract image features
+        if self.multiframe:
+            # get current image frame
+            frame_list = []
+            previous_frams = {}
+            for p in paths:
+                frame, extension = tuple(p.split(os.sep)[-1].split('.'))
+                # get its previous frames:
+                for i in range(1, N_PREVIOUS_FRAMES+1):
+                    frame_prev = frame - i*STRIDE_PREVIOUS_FRAMES
+                    frame_prev_path = ''.join()
         
         if isinstance(features, torch.Tensor):
             features = OrderedDict([('0', features)])

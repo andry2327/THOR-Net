@@ -18,6 +18,7 @@ from tqdm import tqdm
 
 from utils.options import parse_args_function
 from utils.utils import freeze_component, calculate_keypoints, create_loader
+from utils.utils_shared import trainloader_dict, valloader_dict
 # for H2O dataset only
 # from utils.h2o_utils.h2o_dataset_utils import load_tar_split 
 # from utils.h2o_utils.h2o_preprocessing_utils import MyPreprocessor
@@ -28,8 +29,8 @@ torch.multiprocessing.set_sharing_strategy('file_system')
 
 '------------------ OTHER INPUT PARAMETERS ------------------'
 IS_SAMPLE_DATASET = True
-TRAINING_SUBSET_SIZE = 1
-VALIDATION_SUBSET_SIZE = 1
+TRAINING_SUBSET_SIZE = 100
+VALIDATION_SUBSET_SIZE = 10
 '------------------------------------------------------------'
 
 other_params = {
@@ -48,7 +49,7 @@ output_folder = args.output_file.rpartition(os.sep)[0]
 # DEBUG
 args.dataset_name = 'povsurgery' 
 args.root = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/povsurgery/object_False' 
-args.output_file = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-1sample-OF--18-06-2024_11-09/model-' 
+args.output_file = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-TEST-MF--21-06-2024_13-49/model-' 
 output_folder = args.output_file.rpartition(os.sep)[0]
 if not os.path.exists(output_folder):
     os.mkdir(output_folder) 
@@ -57,9 +58,10 @@ args.num_iteration = 20
 args.object = False 
 args.hid_size = 96
 args.photometric = True
+args.multiframe = True 
 args.log_batch = 1 # frequency to print training losses
 args.val_epoch = 1 # frequency to compute validation loss
-args.pretrained_model='/content/drive/MyDrive/Thesis/THOR-Net_trained_on_POV-Surgery_object_False/Training-1sample-OF--18-06-2024_11-09/model-20.pkl'
+args.pretrained_model=''#'/content/drive/MyDrive/Thesis/THOR-Net_trained_on_POV-Surgery_object_False/Training-1sample-OF--18-06-2024_11-09/model-20.pkl'
 args.hands_connectivity_type = 'base'
 
 
@@ -76,7 +78,7 @@ num_kps2d, num_kps3d, num_verts = calculate_keypoints(args.dataset_name, args.ob
 
 files_in_dir = os.listdir(output_folder)
 log_file = [x for x in files_in_dir if x.endswith('.txt')]
-log_file = ['2log_Training-1sample-OF--18-06-2024_11-09.txt'] # DEBUG
+
 if log_file:
     # If there is an existing log file, use the first one found
     filename_log = os.path.join(output_folder, log_file[0])
@@ -139,11 +141,15 @@ if args.dataset_name.lower() == 'h2o':
 else: # i.e. HO3D, POV-Surgery
     print(f'Loading training data ...', end=' ')
     trainloader = create_loader(args.dataset_name, args.root, 'train', batch_size=args.batch_size, num_kps3d=num_kps3d, num_verts=num_verts, other_params=other_params)
+    for index, data in enumerate(trainloader):
+        trainloader_dict[data[0]['path']] = index
     print(f'✅ Training data loaded.')
     print(f'Loading validation data ...', end=' ')
     # DEBUG
     # valloader = trainloader # DEBUG
     valloader = create_loader(args.dataset_name, args.root, 'val', batch_size=args.batch_size, other_params=other_params)
+    for index, data in enumerate(valloader):
+        valloader_dict[data[0]['path']] = index
     print(f'✅ Validation data loaded.')
     num_classes = 2 
     graph_input = 'heatmaps'
@@ -154,7 +160,8 @@ model = create_thor(num_kps2d=num_kps2d, num_kps3d=num_kps3d, num_verts=num_vert
                                 rpn_post_nms_top_n_train=num_classes-1, 
                                 device=device, num_features=args.num_features, hid_size=args.hid_size,
                                 photometric=args.photometric, graph_input=graph_input, dataset_name=args.dataset_name, testing=args.testing,
-                                hands_connectivity_type=args.hands_connectivity_type)
+                                hands_connectivity_type=args.hands_connectivity_type,
+                                multiframe=args.multiframe)
 
 print('THOR-Net is loaded')
 
@@ -218,7 +225,10 @@ for epoch in range(start, start + args.num_iterations):  # loop over the dataset
         
         # Forward
         targets = [{k: v.to(device) for k, v in t.items() if k in keys} for t in data_dict]
-        inputs = [t['inputs'].to(device) for t in data_dict]
+        inputs = {
+            'inputs': [t['inputs'].to(device) for t in data_dict],
+            'paths': [t['path'] for t in data_dict]
+        }
         loss_dict, result = model(inputs, targets)
         
         # Calculate Loss
