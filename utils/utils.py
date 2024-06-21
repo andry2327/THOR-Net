@@ -31,7 +31,7 @@ def h2o_collate_fn(samples):
         output_list.append(sample_dict)
     return output_list
 
-def create_loader(dataset_name, root, split, batch_size, num_kps3d=21, num_verts=778, h2o_info=None, is_sample_dataset=False):
+def create_loader(dataset_name, root, split, batch_size, num_kps3d=21, num_verts=778, h2o_info=None, other_params={}):
 
     transform = transforms.Compose([transforms.ToTensor()])
     
@@ -60,9 +60,9 @@ def create_loader(dataset_name, root, split, batch_size, num_kps3d=21, num_verts
         loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=2, collate_fn=ho3d_collate_fn)
     else:
         dataset = Dataset(root=root, load_set=split, transform=transform, num_kps3d=num_kps3d, num_verts=num_verts)
-        if is_sample_dataset:
+        if other_params['IS_SAMPLE_DATASET']:
             print('Sub-dataset creation ...', end=' ')
-            subset_size = 100 if split=='train' else 10
+            subset_size = other_params['TRAINING_SUBSET_SIZE'] if split=='train' else other_params['VALIDATION_SUBSET_SIZE']
             indices = list(range(subset_size))
             dataset = Subset(dataset, indices)
         loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=2, collate_fn=ho3d_collate_fn)

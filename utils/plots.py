@@ -4,7 +4,7 @@ import argparse
 import os
 
 plt.rcParams['figure.dpi'] = 300
-
+'''
 def parse_logs(log_file):
     
     epochs_train, val_epochs = [], []
@@ -45,6 +45,60 @@ def parse_logs(log_file):
                 val_mesh_losses_3d.append(mesh_loss_3d)
                 val_photometric_losses.append(photometric)
                 
+    return epochs_train, val_epochs, losses_2d, losses_3d, mesh_losses_3d, photometric_losses, val_losses_2d, val_losses_3d, val_mesh_losses_3d, val_photometric_losses''''''
+'''
+def parse_logs(log_file):
+    epochs_train = {}
+    val_epochs = {}
+    losses_2d = {}
+    losses_3d = {}
+    mesh_losses_3d = {}
+    photometric_losses = {}
+    val_losses_2d = {}
+    val_losses_3d = {}
+    val_mesh_losses_3d = {}
+    val_photometric_losses = {}
+
+    with open(log_file, 'r') as f:
+        for line in f:
+            if '--' not in line and 'Epoch' in line:
+                if '[' in line and ']' in line:  # train loss
+                    line_splitted = line.split(' ')
+                    epoch = int(line_splitted[1].split('/')[0])
+                    loss_2d = float(line_splitted[7].strip(','))
+                    loss_3d = float(line_splitted[10].strip(','))
+                    mesh_loss_3d = float(line_splitted[14].strip(','))
+                    photometric = float(line_splitted[17].strip('\n'))
+                    epochs_train[epoch] = epoch
+                    losses_2d[epoch] = loss_2d
+                    losses_3d[epoch] = loss_3d
+                    mesh_losses_3d[epoch] = mesh_loss_3d
+                    photometric_losses[epoch] = photometric
+                elif '[' not in line and ']' not in line:  # val loss
+                    line_splitted = line.split(' ')
+                    epoch = int(line_splitted[1].split('/')[0])
+                    loss_2d = float(line_splitted[6].strip(','))
+                    loss_3d = float(line_splitted[10].strip(','))
+                    mesh_loss_3d = float(line_splitted[15].strip(','))
+                    photometric = float(line_splitted[19].strip('\n'))
+                    val_epochs[epoch] = epoch
+                    val_losses_2d[epoch] = loss_2d
+                    val_losses_3d[epoch] = loss_3d
+                    val_mesh_losses_3d[epoch] = mesh_loss_3d
+                    val_photometric_losses[epoch] = photometric
+
+    # Convert dictionaries to lists sorted by epoch
+    epochs_train = sorted(epochs_train.values())
+    val_epochs = sorted(val_epochs.values())
+    losses_2d = [losses_2d[epoch] for epoch in epochs_train]
+    losses_3d = [losses_3d[epoch] for epoch in epochs_train]
+    mesh_losses_3d = [mesh_losses_3d[epoch] for epoch in epochs_train]
+    photometric_losses = [photometric_losses[epoch] for epoch in epochs_train]
+    val_losses_2d = [val_losses_2d[epoch] for epoch in val_epochs]
+    val_losses_3d = [val_losses_3d[epoch] for epoch in val_epochs]
+    val_mesh_losses_3d = [val_mesh_losses_3d[epoch] for epoch in val_epochs]
+    val_photometric_losses = [val_photometric_losses[epoch] for epoch in val_epochs]
+
     return epochs_train, val_epochs, losses_2d, losses_3d, mesh_losses_3d, photometric_losses, val_losses_2d, val_losses_3d, val_mesh_losses_3d, val_photometric_losses
 
 def plot_losses(log_file, out_path=''):
@@ -64,7 +118,7 @@ def plot_losses(log_file, out_path=''):
     # Plot training loss 3D and mesh loss 3D
     axs[1, 0].plot(losses_3d, label='Loss 3D', marker='o')
     axs[1, 0].plot(mesh_losses_3d, label='Mesh Loss 3D', marker='o')
-    axs[1, 0].set_xlabel('Samples')
+    axs[1, 0].set_xlabel('Epochs')
     axs[1, 0].set_ylabel('Loss')
     axs[1, 0].set_title('Training Loss 3D and Mesh Loss 3D')
     axs[1, 0].legend()
@@ -73,7 +127,7 @@ def plot_losses(log_file, out_path=''):
 
     # Plot training photometric loss
     axs[2, 0].plot(photometric_losses, label='Photometric Loss', marker='o')
-    axs[2, 0].set_xlabel('Samples')
+    axs[2, 0].set_xlabel('Epochs')
     axs[2, 0].set_ylabel('Loss')
     axs[2, 0].set_title('Training Photometric Loss')
     axs[2, 0].legend()

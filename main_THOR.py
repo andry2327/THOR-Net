@@ -26,6 +26,18 @@ from models.thor_net import create_thor
 
 torch.multiprocessing.set_sharing_strategy('file_system')
 
+'------------------ OTHER INPUT PARAMETERS ------------------'
+IS_SAMPLE_DATASET = True
+TRAINING_SUBSET_SIZE = 1
+VALIDATION_SUBSET_SIZE = 1
+'------------------------------------------------------------'
+
+other_params = {
+    'IS_SAMPLE_DATASET': IS_SAMPLE_DATASET,
+    'TRAINING_SUBSET_SIZE': TRAINING_SUBSET_SIZE,
+    'VALIDATION_SUBSET_SIZE': VALIDATION_SUBSET_SIZE
+}
+
 args = parse_args_function()
 output_folder = args.output_file.rpartition(os.sep)[0]
 # print(f'args:')
@@ -34,23 +46,22 @@ output_folder = args.output_file.rpartition(os.sep)[0]
 # print('-'*30)
 
 # DEBUG
-# args.dataset_name = 'povsurgery' 
-# args.root = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/povsurgery/object_False' 
-# args.output_file = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-100samples--20-06-2024_15-24/model-' 
-# output_folder = args.output_file.rpartition(os.sep)[0]
-# if not os.path.exists(output_folder):
-#     os.mkdir(output_folder) 
-# args.batch_size = 1
-# args.num_iteration = 20
-# args.object = False 
-# args.hid_size = 96
-# args.photometric = True
-# args.log_batch = 1 # frequency to print training losses
-# args.val_epoch = 1 # frequency to compute validation loss
-# args.pretrained_model=''#'/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-1sample-OF--18-06-2024_11-09/model-41.pkl'
-# args.hands_connectivity_type = 'base'
+args.dataset_name = 'povsurgery' 
+args.root = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/povsurgery/object_False' 
+args.output_file = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-1sample-OF--18-06-2024_11-09/model-' 
+output_folder = args.output_file.rpartition(os.sep)[0]
+if not os.path.exists(output_folder):
+    os.mkdir(output_folder) 
+args.batch_size = 1
+args.num_iteration = 20
+args.object = False 
+args.hid_size = 96
+args.photometric = True
+args.log_batch = 1 # frequency to print training losses
+args.val_epoch = 1 # frequency to compute validation loss
+args.pretrained_model='/content/drive/MyDrive/Thesis/THOR-Net_trained_on_POV-Surgery_object_False/Training-1sample-OF--18-06-2024_11-09/model-20.pkl'
+args.hands_connectivity_type = 'base'
 
-IS_SAMPLE_DATASET = True
 
 # Define device
 device = torch.device(f'cuda:{args.gpu_number[0]}' if torch.cuda.is_available() else 'cpu')
@@ -65,14 +76,14 @@ num_kps2d, num_kps3d, num_verts = calculate_keypoints(args.dataset_name, args.ob
 
 files_in_dir = os.listdir(output_folder)
 log_file = [x for x in files_in_dir if x.endswith('.txt')]
-
+log_file = ['2log_Training-1sample-OF--18-06-2024_11-09.txt'] # DEBUG
 if log_file:
     # If there is an existing log file, use the first one found
     filename_log = os.path.join(output_folder, log_file[0])
     
     # delete all lines referring to higher epochs of trained model
     current_model_epoch = int(args.pretrained_model.split('-')[-1].split('.')[0])
-    pattern = f'Epoch {current_model_epoch}/'
+    pattern = f'Epoch {current_model_epoch+1}/'
     with open(filename_log, 'r') as file:
         lines = file.readlines()
     index = None
@@ -127,12 +138,12 @@ if args.dataset_name.lower() == 'h2o':
     graph_input = 'coords'
 else: # i.e. HO3D, POV-Surgery
     print(f'Loading training data ...', end=' ')
-    trainloader = create_loader(args.dataset_name, args.root, 'train', batch_size=args.batch_size, num_kps3d=num_kps3d, num_verts=num_verts, is_sample_dataset=IS_SAMPLE_DATASET)
+    trainloader = create_loader(args.dataset_name, args.root, 'train', batch_size=args.batch_size, num_kps3d=num_kps3d, num_verts=num_verts, other_params=other_params)
     print(f'✅ Training data loaded.')
     print(f'Loading validation data ...', end=' ')
     # DEBUG
     # valloader = trainloader # DEBUG
-    valloader = create_loader(args.dataset_name, args.root, 'val', batch_size=args.batch_size, is_sample_dataset=IS_SAMPLE_DATASET)
+    valloader = create_loader(args.dataset_name, args.root, 'val', batch_size=args.batch_size, other_params=other_params)
     print(f'✅ Validation data loaded.')
     num_classes = 2 
     graph_input = 'heatmaps'
