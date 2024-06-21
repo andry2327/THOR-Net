@@ -18,7 +18,7 @@ from tqdm import tqdm
 
 from utils.options import parse_args_function
 from utils.utils import freeze_component, calculate_keypoints, create_loader
-from utils.utils_shared import trainloader_dict, valloader_dict
+from utils.utils_shared import trainloader_dict, valloader_dict, trainloader, valloader
 # for H2O dataset only
 # from utils.h2o_utils.h2o_dataset_utils import load_tar_split 
 # from utils.h2o_utils.h2o_preprocessing_utils import MyPreprocessor
@@ -142,14 +142,14 @@ else: # i.e. HO3D, POV-Surgery
     print(f'Loading training data ...', end=' ')
     trainloader = create_loader(args.dataset_name, args.root, 'train', batch_size=args.batch_size, num_kps3d=num_kps3d, num_verts=num_verts, other_params=other_params)
     for index, data in enumerate(trainloader):
-        trainloader_dict[data[0]['path']] = index
+        trainloader_dict[data[0]['path']] = data
     print(f'✅ Training data loaded.')
     print(f'Loading validation data ...', end=' ')
     # DEBUG
     # valloader = trainloader # DEBUG
     valloader = create_loader(args.dataset_name, args.root, 'val', batch_size=args.batch_size, other_params=other_params)
     for index, data in enumerate(valloader):
-        valloader_dict[data[0]['path']] = index
+        valloader_dict[data[0]['path']] = data
     print(f'✅ Validation data loaded.')
     num_classes = 2 
     graph_input = 'heatmaps'

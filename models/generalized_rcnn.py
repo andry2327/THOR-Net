@@ -100,14 +100,28 @@ class GeneralizedRCNN(nn.Module):
         if self.multiframe:
             # get current image frame
             frame_list = []
-            previous_frams = {}
+            previous_frames_features = {}
             for p in paths:
                 frame, extension = tuple(p.split(os.sep)[-1].split('.'))
                 # get its previous frames:
+                previous_frames_features[p] = []
                 for i in range(1, N_PREVIOUS_FRAMES+1):
                     frame_prev = frame - i*STRIDE_PREVIOUS_FRAMES
-                    frame_prev_path = ''.join()
-        
+                    frame_prev_path = p.replace(f'{frame}.{extension}', f'{frame_prev}.{extension}')
+                    # get its index in DataLoader
+                    frame_prev_index = -1
+                    is_in_trainloader = False
+                    if frame_prev_path in trainloader_dict.keys():
+                        frame_prev_data = trainloader_dict[frame_prev_path]
+                        is_in_trainloader = True
+                    elif frame_prev_path in valloader_dict.keys():
+                        frame_prev_data = valloader_dict[frame_prev_path]
+                    else:
+                        pass # previous frame do not exists
+                    if frame_prev_index != -1: # frame idx found
+                        image_prev = frame_prev_data['inputs']
+                        
+                    
         if isinstance(features, torch.Tensor):
             features = OrderedDict([('0', features)])
         proposals, proposal_losses = self.rpn(images, features, targets)
