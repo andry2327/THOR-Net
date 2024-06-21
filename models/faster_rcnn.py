@@ -155,7 +155,9 @@ class FasterRCNN(GeneralizedRCNN):
                  box_score_thresh=0.05, box_nms_thresh=0.5, box_detections_per_img=100,
                  box_fg_iou_thresh=0.5, box_bg_iou_thresh=0.5,
                  box_batch_size_per_image=512, box_positive_fraction=0.25,
-                 bbox_reg_weights=None):
+                 bbox_reg_weights=None,
+                 # additional
+                 multiframe=False):
 
         if not hasattr(backbone, "out_channels"):
             raise ValueError(
@@ -230,7 +232,7 @@ class FasterRCNN(GeneralizedRCNN):
             image_std = [0.229, 0.224, 0.225]
         transform = GeneralizedRCNNTransform(min_size, max_size, image_mean, image_std)
 
-        super(FasterRCNN, self).__init__(backbone, rpn, roi_heads, transform)
+        super(FasterRCNN, self).__init__(backbone, rpn, roi_heads, transform, multiframe)
 
 
 class TwoMLPHead(nn.Module):

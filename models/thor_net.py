@@ -173,10 +173,12 @@ class THOR(FasterRCNN):
                  keypoint_roi_pool=None, keypoint_head=None, keypoint_predictor=None, 
                  num_kps2d=21, num_kps3d=50, num_verts=2556, photometric=False, hid_size=128,
                  graph_input='heatmaps', num_features=2048, device='cuda', dataset_name='h2o',
-                 #hands connectivity parameters
-                 hands_connectivity_type=''):
+                 # additional
+                 hands_connectivity_type='',
+                 multiframe=False):
 
         self.device = device
+        self.multiframe = hands_connectivity_type
 
         assert isinstance(keypoint_roi_pool, (MultiScaleRoIAlign, type(None)))
         if min_size is None:
@@ -243,7 +245,8 @@ class THOR(FasterRCNN):
             box_score_thresh, box_nms_thresh, box_detections_per_img,
             box_fg_iou_thresh, box_bg_iou_thresh,
             box_batch_size_per_image, box_positive_fraction,
-            bbox_reg_weights)
+            bbox_reg_weights,
+            self.multiframe)
 
         self.roi_heads.keypoint_roi_pool = keypoint_roi_pool
         self.roi_heads.keypoint_head = keypoint_head
@@ -337,7 +340,8 @@ def create_thor(pretrained=False, progress=True,
                               graph_input='heatmaps', 
                               dataset_name='ho3d',
                               testing=False,
-                              hands_connectivity_type=''):
+                              hands_connectivity_type='',
+                              multiframe=False):
     """
     Constructs a Keypoint R-CNN model with a ResNet-50-FPN backbone.
 
@@ -416,7 +420,8 @@ def create_thor(pretrained=False, progress=True,
                     photometric=photometric,
                     graph_input=graph_input,
                     dataset_name=dataset_name,
-                    hands_connectivity_type=hands_connectivity_type)
+                    hands_connectivity_type=hands_connectivity_type,
+                    multiframe=multiframe)
     else: # args: Testing = True
         model = THOR(backbone,
                     num_classes=num_classes, 
@@ -430,5 +435,6 @@ def create_thor(pretrained=False, progress=True,
                     dataset_name=dataset_name,
                     num_features=num_features,
                     hid_size=hid_size,
-                    hands_connectivity_type=hands_connectivity_type)
+                    hands_connectivity_type=hands_connectivity_type,
+                    multiframe=multiframe)
     return model
