@@ -69,6 +69,21 @@ log_file = [x for x in files_in_dir if x.endswith('.txt')]
 if log_file:
     # If there is an existing log file, use the first one found
     filename_log = os.path.join(output_folder, log_file[0])
+    
+    # delete all lines referring to higher epochs of trained model
+    current_model_epoch = int(args.pretrained_model.split('-')[-1].split('.')[0])
+    pattern = f'Epoch {current_model_epoch}/'
+    with open(filename_log, 'r') as file:
+        lines = file.readlines()
+    index = None
+    for i, line in enumerate(lines):
+        if pattern in line:
+            index = i
+            break
+    if index is not None:
+        lines = lines[:index]
+    with open(filename_log, 'w') as file:
+        file.writelines(lines)
 else:
     # Create a new log file
     filename_log = os.path.join(

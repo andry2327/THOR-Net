@@ -124,8 +124,9 @@ def main():
     args = parser.parse_args()
     
     plot_losses(args.log_file, args.output_path)
-    # file = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training--17-06-2024_13-52/log_Training--17-06-2024_13-52.txt'
-    # plot_losses(file)
+    # file = '/Users/andreapellegrino/Downloads/log_Training-100samples--20-06-2024_17-08.txt'
+    # out_path = '/Users/andreapellegrino/Downloads'
+    # plot_losses(file, out_path)
 
 if __name__ == "__main__":
     main()
