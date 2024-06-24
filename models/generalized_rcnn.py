@@ -7,7 +7,7 @@ import torch
 from torch import nn, Tensor
 import warnings
 from typing import Tuple, List, Dict, Optional, Union
-from utils.utils_shared import trainloader_dict, valloader_dict
+from utils.utils_shared import dataset_dict
 import os
 
 '------------------ INPUT PARAMETERS for MULTI-FRAME features ------------------'
@@ -95,7 +95,6 @@ class GeneralizedRCNN(nn.Module):
                                      " Found invalid box {} for target at index {}."
                                      .format(degen_bb, target_idx))
 
-        print(f'multiframe = {self.multiframe}') # DEBUG
         features = self.backbone(images.tensors) # extract image features
         if self.multiframe:
             # get current image frame
@@ -106,22 +105,16 @@ class GeneralizedRCNN(nn.Module):
                 # get its previous frames:
                 previous_frames_features[p] = []
                 for i in range(1, N_PREVIOUS_FRAMES+1):
-                    frame_prev = frame - i*STRIDE_PREVIOUS_FRAMES
-                    frame_prev_path = p.replace(f'{frame}.{extension}', f'{frame_prev}.{extension}')
-                    # get its index in DataLoader
-                    frame_prev_index = -1
-                    is_in_trainloader = False
-                    if frame_prev_path in trainloader_dict.keys():
-                        frame_prev_data = trainloader_dict[frame_prev_path]
-                        is_in_trainloader = True
-                    elif frame_prev_path in valloader_dict.keys():
-                        frame_prev_data = valloader_dict[frame_prev_path]
+                    frame_prev = int(frame) - i*STRIDE_PREVIOUS_FRAMES
+                    frame_prev_path = p.replace(f'{frame}.{extension}', f'{frame_prev}'.zfill(5)+'.'+f'{extension}')
+                    # get its data in DataLoader
+                    frame_prev_data = None
+                    if frame_prev_path in dataset_dict.keys():
+                        frame_prev_data = dataset_dict[frame_prev_path]
+                        image_prev = frame_prev_data['inputs']
                     else:
                         pass # previous frame do not exists
-                    if frame_prev_index != -1: # frame idx found
-                        image_prev = frame_prev_data['inputs']
                         
-                    
         if isinstance(features, torch.Tensor):
             features = OrderedDict([('0', features)])
         proposals, proposal_losses = self.rpn(images, features, targets)
