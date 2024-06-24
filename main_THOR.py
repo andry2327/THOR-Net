@@ -18,12 +18,13 @@ from tqdm import tqdm
 
 from utils.options import parse_args_function
 from utils.utils import freeze_component, calculate_keypoints, create_loader
-from utils.utils_shared import dataset_dict
+
 # for H2O dataset only
 # from utils.h2o_utils.h2o_dataset_utils import load_tar_split 
 # from utils.h2o_utils.h2o_preprocessing_utils import MyPreprocessor
 
 from models.thor_net import create_thor
+from utils.utils_shared import dataset_dict, dataset_train, dataset_val
 
 torch.multiprocessing.set_sharing_strategy('file_system')
 
@@ -32,12 +33,10 @@ IS_SAMPLE_DATASET = True # to use a sample of original dataset
 TRAINING_SUBSET_SIZE = 100
 VALIDATION_SUBSET_SIZE = 10
 '------------------------------------------------------------'
-
-other_params = {
-    'IS_SAMPLE_DATASET': IS_SAMPLE_DATASET,
-    'TRAINING_SUBSET_SIZE': TRAINING_SUBSET_SIZE,
-    'VALIDATION_SUBSET_SIZE': VALIDATION_SUBSET_SIZE
-}
+'------------------ INPUT PARAMETERS for MULTI-FRAME features ------------------'
+N_PREVIOUS_FRAMES = 3
+STRIDE_PREVIOUS_FRAMES = 3
+'-------------------------------------------------------------------------------'
 
 args = parse_args_function()
 output_folder = args.output_file.rpartition(os.sep)[0]
@@ -64,6 +63,14 @@ args.val_epoch = 1 # frequency to compute validation loss
 args.pretrained_model=''#'/content/drive/MyDrive/Thesis/THOR-Net_trained_on_POV-Surgery_object_False/Training-1sample-OF--18-06-2024_11-09/model-20.pkl'
 args.hands_connectivity_type = 'base'
 
+other_params = {
+    'IS_SAMPLE_DATASET': IS_SAMPLE_DATASET,
+    'TRAINING_SUBSET_SIZE': TRAINING_SUBSET_SIZE,
+    'VALIDATION_SUBSET_SIZE': VALIDATION_SUBSET_SIZE,
+    'IS_MULTIFRAME': args.multiframe,
+    'N_PREVIOUS_FRAMES': N_PREVIOUS_FRAMES,
+    'STRIDE_PREVIOUS_FRAMES': STRIDE_PREVIOUS_FRAMES
+}
 
 # Define device
 device = torch.device(f'cuda:{args.gpu_number[0]}' if torch.cuda.is_available() else 'cpu')
@@ -152,6 +159,7 @@ else: # i.e. HO3D, POV-Surgery
 
 """ load model """
 torch.cuda.empty_cache()
+from utils.utils_shared import dataset_dict
 model = create_thor(num_kps2d=num_kps2d, num_kps3d=num_kps3d, num_verts=num_verts, num_classes=num_classes, 
                                 rpn_post_nms_top_n_train=num_classes-1, 
                                 device=device, num_features=args.num_features, hid_size=args.hid_size,
@@ -223,7 +231,7 @@ for epoch in range(start, start + args.num_iterations):  # loop over the dataset
         targets = [{k: v.to(device) for k, v in t.items() if k in keys} for t in data_dict]
         inputs = {
             'inputs': [t['inputs'].to(device) for t in data_dict],
-            'paths': [t['path'] for t in data_dict]
+            'prev_frames': [t['prev_frames'] for t in data_dict if 'prev_frames' in t]
         }
         loss_dict, result = model(inputs, targets)
         

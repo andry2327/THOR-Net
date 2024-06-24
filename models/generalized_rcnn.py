@@ -7,13 +7,8 @@ import torch
 from torch import nn, Tensor
 import warnings
 from typing import Tuple, List, Dict, Optional, Union
-from utils.utils_shared import dataset_dict
+from utils.utils_shared import dataset_dict, dataset_train, dataset_val
 import os
-
-'------------------ INPUT PARAMETERS for MULTI-FRAME features ------------------'
-N_PREVIOUS_FRAMES = 3
-STRIDE_PREVIOUS_FRAMES = 3
-'-------------------------------------------------------------------------------'
 
 class GeneralizedRCNN(nn.Module):
     """
@@ -67,8 +62,8 @@ class GeneralizedRCNN(nn.Module):
                 else:
                     raise ValueError("Expected target boxes to be of type "
                                      "Tensor, got {:}.".format(type(boxes)))
-        
-        paths = images['paths']
+        if 'prev_frames' in images:
+            prev_frames = images['prev_frames']
         images = images['inputs']
         
         original_image_sizes: List[Tuple[int, int]] = []
@@ -96,25 +91,11 @@ class GeneralizedRCNN(nn.Module):
                                      .format(degen_bb, target_idx))
 
         features = self.backbone(images.tensors) # extract image features
-        if self.multiframe:
-            # get current image frame
-            frame_list = []
+        if self.multiframe and prev_frames:
             previous_frames_features = {}
-            for p in paths:
-                frame, extension = tuple(p.split(os.sep)[-1].split('.'))
-                # get its previous frames:
-                previous_frames_features[p] = []
-                for i in range(1, N_PREVIOUS_FRAMES+1):
-                    frame_prev = int(frame) - i*STRIDE_PREVIOUS_FRAMES
-                    frame_prev_path = p.replace(f'{frame}.{extension}', f'{frame_prev}'.zfill(5)+'.'+f'{extension}')
-                    # get its data in DataLoader
-                    frame_prev_data = None
-                    if frame_prev_path in dataset_dict.keys():
-                        frame_prev_index = dataset_dict[frame_prev_path]
-                        frame_prev_data = dataset_dict[frame_prev_index]
-                        image_prev = frame_prev_data['inputs']
-                    else:
-                        pass # previous frame do not exists
+            for pfs in prev_frames:
+                features = self.backbone(pfs.tensors)
+                    
                         
         if isinstance(features, torch.Tensor):
             features = OrderedDict([('0', features)])

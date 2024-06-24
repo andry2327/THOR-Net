@@ -15,18 +15,21 @@ from .rcnn_utils import calculate_bounding_box, create_rcnn_data
 class Dataset(data.Dataset):
     """# Dataset Class """
 
-    def __init__(self, root='./', load_set='train', transform=None, num_kps3d=21, num_verts=778, hdf5_file=None):
+    def __init__(self, root='./', load_set='train', transform=None, num_kps3d=21, num_verts=778, hdf5_file=None, other_params={}):
 
         self.root = root
         self.transform = transform
         self.num_kps3d = num_kps3d
         self.num_verts = num_verts
         self.hdf5 = hdf5_file
+        self.IS_MULTIFRAME = other_params['IS_MULTIFRAME']
+        self.N_PREVIOUS_FRAMES = other_params['N_PREVIOUS_FRAMES']
+        self.STRIDE_PREVIOUS_FRAMES = other_params['STRIDE_PREVIOUS_FRAMES']
 
         # TODO: add depth transformation
         self.load_set = load_set  # 'train','val','test'
         self.images = np.load(os.path.join(root, 'images-%s.npy' % self.load_set), allow_pickle=True)
-        self.path_to_idx = {index: path for index, path in enumerate(self.images)}
+        self.path_to_idx = {path: index for index, path in enumerate(self.images)}
         self.points2d = np.load(os.path.join(root, 'points2d-%s.npy' % self.load_set), allow_pickle=True)
         self.points2d = self.points2d.astype(np.float64) if self.points2d.dtype == object else self.points2d
         self.points3d = np.load(os.path.join(root, 'points3d-%s.npy' % self.load_set), allow_pickle=True)
@@ -86,6 +89,29 @@ class Dataset(data.Dataset):
             bb, mesh2d = np.array([]), np.array([])
             boxes, labels, keypoints, keypoints3d, mesh3d = torch.Tensor([]), torch.Tensor([]), torch.Tensor([]), torch.Tensor([]), torch.Tensor([])
 
+        if self.IS_MULTIFRAME:
+            frame, extension = tuple(image_path.split(os.sep)[-1].split('.'))
+            prev_frames = []
+            for i in range(1, self.N_PREVIOUS_FRAMES+1):
+                frame_prev = int(frame) - i*self.STRIDE_PREVIOUS_FRAMES
+                frame_prev_path = image_path.replace(f'{frame}.{extension}', f'{frame_prev}'.zfill(5)+'.'+f'{extension}')
+                if frame_prev_path in self.path_to_idx.keys():
+                    frame_prev_idx = self.path_to_idx[frame_prev_path]
+                    prev_image_path = self.images[frame_prev_idx]
+                    # Load image and apply preprocessing if any
+                    if self.hdf5 is not None:
+                        data = np.array(self.hdf5[prev_image_path])
+                        prev_original_image = np.array(Image.open(io.BytesIO(data)))[..., :3]
+                    else:
+                        try:
+                            prev_original_image = cv2.cvtColor(cv2.imread(prev_image_path), cv2.COLOR_BGR2RGB)
+                        except:
+                            prev_image_path = prev_image_path.replace('gdrive', 'drive') # original files save with path 'content/gdrive/ ...'
+                            # print(f'DEBUG: {image_path}')
+                            prev_original_image = cv2.cvtColor(cv2.imread(prev_image_path), cv2.COLOR_BGR2RGB)
+                    inputs = self.transform(prev_original_image)  # [:3]
+                    prev_frames.append(inputs)
+                
         data = {
             'path': image_path,
             'original_image': original_image,
@@ -101,6 +127,9 @@ class Dataset(data.Dataset):
             'mesh3d': mesh3d,
             'palm': torch.Tensor(palm[np.newaxis, ...]).float()
         }
+        
+        if self.IS_MULTIFRAME:
+            data['prev_frames'] = prev_frames
 
         return data
 
