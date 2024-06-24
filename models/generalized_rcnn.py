@@ -72,7 +72,7 @@ class GeneralizedRCNN(nn.Module):
             original_image_sizes.append((val[0], val[1]))
         
         original_images = [img.permute(1, 2, 0) for img in images]
-        
+        old_targets = targets
         images, targets = self.transform(images, targets)
 
         # Check for degenerate boxes
@@ -91,11 +91,11 @@ class GeneralizedRCNN(nn.Module):
 
         features = self.backbone(images.tensors) # extract image features
         if self.multiframe and prev_frames:
-            previous_frames_features = {}
             for pfs in prev_frames:
-                features = self.backbone(pfs.tensors)
-                    
-                        
+                pfs, _ = self.transform(pfs, old_targets)
+                features_prev_frames = self.backbone(pfs.tensors) #TODO: stops everything, to check
+                features = torch.cat((features, features_prev_frames), dim=1)
+                 
         if isinstance(features, torch.Tensor):
             features = OrderedDict([('0', features)])
         proposals, proposal_losses = self.rpn(images, features, targets)
