@@ -7,7 +7,6 @@ import torch
 from torch import nn, Tensor
 import warnings
 from typing import Tuple, List, Dict, Optional, Union
-from utils.utils_shared import dataset_dict, dataset_train, dataset_val
 import os
 
 class GeneralizedRCNN(nn.Module):

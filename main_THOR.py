@@ -24,8 +24,6 @@ from utils.utils import freeze_component, calculate_keypoints, create_loader
 # from utils.h2o_utils.h2o_preprocessing_utils import MyPreprocessor
 
 from models.thor_net import create_thor
-from utils.utils_shared import dataset_dict, dataset_train, dataset_val
-
 torch.multiprocessing.set_sharing_strategy('file_system')
 
 '------------------ OTHER INPUT PARAMETERS ------------------'
@@ -159,7 +157,7 @@ else: # i.e. HO3D, POV-Surgery
 
 """ load model """
 torch.cuda.empty_cache()
-from utils.utils_shared import dataset_dict
+
 model = create_thor(num_kps2d=num_kps2d, num_kps3d=num_kps3d, num_verts=num_verts, num_classes=num_classes, 
                                 rpn_post_nms_top_n_train=num_classes-1, 
                                 device=device, num_features=args.num_features, hid_size=args.hid_size,

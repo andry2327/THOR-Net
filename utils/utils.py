@@ -5,7 +5,6 @@ import torchvision.transforms as transforms
 # for H2O dataset only
 # from .h2o_utils.h2o_datapipe_pt_1_12 import create_datapipe
 from .dataset import Dataset
-from utils.utils_shared import dataset_dict
 from torch.utils.data import Subset
 from tqdm import tqdm
 import os
