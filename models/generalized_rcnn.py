@@ -110,7 +110,8 @@ class GeneralizedRCNN(nn.Module):
                     # get its data in DataLoader
                     frame_prev_data = None
                     if frame_prev_path in dataset_dict.keys():
-                        frame_prev_data = dataset_dict[frame_prev_path]
+                        frame_prev_index = dataset_dict[frame_prev_path]
+                        frame_prev_data = dataset_dict[frame_prev_index]
                         image_prev = frame_prev_data['inputs']
                     else:
                         pass # previous frame do not exists
