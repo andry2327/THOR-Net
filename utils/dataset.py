@@ -97,15 +97,15 @@ class Dataset(data.Dataset):
                 if frame_prev_path in self.images:
                     # Load image and apply preprocessing if any
                     if self.hdf5 is not None:
-                        data = np.array(self.hdf5[prev_image_path])
+                        data = np.array(self.hdf5[frame_prev_path])
                         prev_original_image = np.array(Image.open(io.BytesIO(data)))[..., :3]
                     else:
                         try:
-                            prev_original_image = cv2.cvtColor(cv2.imread(prev_image_path), cv2.COLOR_BGR2RGB)
+                            prev_original_image = cv2.cvtColor(cv2.imread(frame_prev_path), cv2.COLOR_BGR2RGB)
                         except:
-                            prev_image_path = prev_image_path.replace('gdrive', 'drive') # original files save with path 'content/gdrive/ ...'
+                            frame_prev_path = frame_prev_path.replace('gdrive', 'drive') # original files save with path 'content/gdrive/ ...'
                             # print(f'DEBUG: {image_path}')
-                            prev_original_image = cv2.cvtColor(cv2.imread(prev_image_path), cv2.COLOR_BGR2RGB)
+                            prev_original_image = cv2.cvtColor(cv2.imread(frame_prev_path), cv2.COLOR_BGR2RGB)
                     inputs = self.transform(prev_original_image)  # [:3]
                     prev_frames.append(inputs)
                 

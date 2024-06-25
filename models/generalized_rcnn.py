@@ -91,11 +91,30 @@ class GeneralizedRCNN(nn.Module):
 
         features = self.backbone(images.tensors) # extract image features
         if self.multiframe and prev_frames:
+            '''reshaped_list = []
             for pfs in prev_frames:
                 pfs, _ = self.transform(pfs, None)
-                for pf in pfs:
-                    features_prev_frame = self.backbone(pf.tensors) #TODO: stops everything, to check
-                    features = torch.cat((features, features_prev_frames), dim=1)
+            for i in range(len(prev_frames[0])):
+                combined_tensor = torch.stack([tensor[i] for tensor in prev_frames])
+                reshaped_list.append(combined_tensor)
+            for i in range(len(reshaped_list)):
+                features_prev_frame = self.backbone(reshaped_list[i]) 
+                features = torch.cat((features, features_prev_frames), dim=0)'''
+            for i in range(len(prev_frames[0])):
+                combined_tensor_list = []
+                for pfs in prev_frames:
+                    pfs, _ = self.transform(pfs, None)
+                    combined_tensor_list.append(pfs[i])
+                
+                combined_tensor = torch.stack(combined_tensor_list)
+                features_prev_frame = self.backbone(combined_tensor)
+                features = torch.cat((features, features_prev_frame), dim=0)
+
+                # Clear memory for tensors that are no longer needed
+                del combined_tensor_list
+                del combined_tensor
+                del features_prev_frame
+                torch.cuda.empty_cache()  # if using GPU   
                  
         if isinstance(features, torch.Tensor):
             features = OrderedDict([('0', features)])
