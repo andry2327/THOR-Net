@@ -92,9 +92,10 @@ class GeneralizedRCNN(nn.Module):
         features = self.backbone(images.tensors) # extract image features
         if self.multiframe and prev_frames:
             for pfs in prev_frames:
-                pfs, _ = self.transform(pfs, old_targets)
-                features_prev_frames = self.backbone(pfs.tensors) #TODO: stops everything, to check
-                features = torch.cat((features, features_prev_frames), dim=1)
+                pfs, _ = self.transform(pfs, None)
+                for pf in pfs:
+                    features_prev_frame = self.backbone(pf.tensors) #TODO: stops everything, to check
+                    features = torch.cat((features, features_prev_frames), dim=1)
                  
         if isinstance(features, torch.Tensor):
             features = OrderedDict([('0', features)])

@@ -29,7 +29,6 @@ class Dataset(data.Dataset):
         # TODO: add depth transformation
         self.load_set = load_set  # 'train','val','test'
         self.images = np.load(os.path.join(root, 'images-%s.npy' % self.load_set), allow_pickle=True)
-        self.path_to_idx = {path: index for index, path in enumerate(self.images)}
         self.points2d = np.load(os.path.join(root, 'points2d-%s.npy' % self.load_set), allow_pickle=True)
         self.points2d = self.points2d.astype(np.float64) if self.points2d.dtype == object else self.points2d
         self.points3d = np.load(os.path.join(root, 'points3d-%s.npy' % self.load_set), allow_pickle=True)
@@ -95,9 +94,7 @@ class Dataset(data.Dataset):
             for i in range(1, self.N_PREVIOUS_FRAMES+1):
                 frame_prev = int(frame) - i*self.STRIDE_PREVIOUS_FRAMES
                 frame_prev_path = image_path.replace(f'{frame}.{extension}', f'{frame_prev}'.zfill(5)+'.'+f'{extension}')
-                if frame_prev_path in self.path_to_idx.keys():
-                    frame_prev_idx = self.path_to_idx[frame_prev_path]
-                    prev_image_path = self.images[frame_prev_idx]
+                if frame_prev_path in self.images:
                     # Load image and apply preprocessing if any
                     if self.hdf5 is not None:
                         data = np.array(self.hdf5[prev_image_path])
