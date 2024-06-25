@@ -32,7 +32,7 @@ TRAINING_SUBSET_SIZE = 100
 VALIDATION_SUBSET_SIZE = 10
 '------------------------------------------------------------'
 '------------------ INPUT PARAMETERS for MULTI-FRAME features ------------------'
-N_PREVIOUS_FRAMES = 3
+N_PREVIOUS_FRAMES = 1
 STRIDE_PREVIOUS_FRAMES = 3
 '-------------------------------------------------------------------------------'
 
@@ -50,7 +50,7 @@ args.output_file = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoint
 output_folder = args.output_file.rpartition(os.sep)[0]
 if not os.path.exists(output_folder):
     os.mkdir(output_folder) 
-args.batch_size = 1
+args.batch_size = 2
 args.num_iteration = 20
 args.object = False 
 args.hid_size = 96

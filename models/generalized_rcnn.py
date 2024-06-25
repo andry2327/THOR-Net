@@ -61,23 +61,50 @@ class GeneralizedRCNN(nn.Module):
                 else:
                     raise ValueError("Expected target boxes to be of type "
                                      "Tensor, got {:}.".format(type(boxes)))
-        if 'prev_frames' in images:
+        if self.multiframe and 'prev_frames' in images:
             prev_frames = images['prev_frames']
-        images = images['inputs']
+            images = images['inputs']
+            images_mf = [[img] + prev_frame for img, prev_frame in zip(images, prev_frames)]
+            
+            all_images = [frame for sublist in images_mf for frame in sublist]
+            
+            original_image_sizes: List[Tuple[int, int]] = []
+            for img in all_images:
+                val = img.shape[-2:]
+                assert len(val) == 2
+                original_image_sizes.append((val[0], val[1]))
+            
+            original_images = [[frame.permute(1, 2, 0) for frame in sublist] for sublist in images_mf]
+            
+            # adapt targets
+            targets_mf = []
+            for i in range(len(targets)):
+                target = targets[i]
+                new_target = [target for _ in range(len(images_mf[i]))]
+                targets_mf.append(new_target)
+            
+            for i, (images_sample, targets_sample) in enumerate(zip(images_mf, targets_mf)):
+                images_sample, targets_sample = self.transform(images_sample, targets_sample)
+                images_mf[i], targets_mf[i] = images_sample, targets_sample
+        else: # NO self.multiframe
+            images = images['inputs']
+            
+            original_image_sizes: List[Tuple[int, int]] = []
+            for img in images:
+                val = img.shape[-2:]
+                assert len(val) == 2
+                original_image_sizes.append((val[0], val[1]))
+            
+            original_images = [img.permute(1, 2, 0) for img in images]
+            
+            images, targets = self.transform(images, targets)
+            
+        # old_targets = targets
         
-        original_image_sizes: List[Tuple[int, int]] = []
-        for img in images:
-            val = img.shape[-2:]
-            assert len(val) == 2
-            original_image_sizes.append((val[0], val[1]))
-        
-        original_images = [img.permute(1, 2, 0) for img in images]
-        old_targets = targets
-        images, targets = self.transform(images, targets)
 
         # Check for degenerate boxes
         # TODO: Move this to a function
-        if targets is not None:
+        if targets is not None and not self.multiframe:
             for target_idx, target in enumerate(targets):
                 boxes = target["boxes"]
                 degenerate_boxes = boxes[:, 2:] <= boxes[:, :2]
@@ -88,18 +115,34 @@ class GeneralizedRCNN(nn.Module):
                     raise ValueError("All bounding boxes should have positive height and width."
                                      " Found invalid box {} for target at index {}."
                                      .format(degen_bb, target_idx))
-
-        features = self.backbone(images.tensors) # extract image features
-        if self.multiframe and prev_frames:
-            reshaped_list = []
-            for pfs in prev_frames:
-                pfs, _ = self.transform(pfs, None)
-            for i in range(len(prev_frames[0])):
-                combined_tensor = torch.stack([tensor[i] for tensor in prev_frames])
-                reshaped_list.append(combined_tensor)
-            for i in range(len(reshaped_list)):
-                features_prev_frame = self.backbone(reshaped_list[i]) 
-                features = torch.cat((features, features_prev_frame), dim=0)
+        if self.multiframe:
+            features_list = []
+            for images_sample in images_mf:
+                features = self.backbone(images_sample.tensors)
+                for key in features:
+                    features[key] = torch.mean(features[key], dim=0, keepdim=True)
+                features_list.append(features)
+            features = OrderedDict()
+            for key in features_list[0].keys():
+                tensors = [feature_dict[key] for feature_dict in features_list]
+                concatenated_tensor = torch.cat(tensors, dim=0)
+                features[key] = concatenated_tensor
+        else:
+            features = self.backbone(images.tensors) # extract image features
+        # if self.multiframe and prev_frames:
+        #     reshaped_list = []
+        #     for i in range(len(prev_frames)):
+        #         for j in range(len(prev_frames[i])):
+        #             p = prev_frames[i][j]
+        #             p, _ = self.transform([p], old_targets)
+        #             prev_frames[i] = p
+        #     for i in range(len(prev_frames[0])):
+        #         combined_tensor = torch.stack([tensor[i] for tensor in prev_frames])
+        #         reshaped_list.append(combined_tensor)
+        #     for i in range(len(reshaped_list)):
+        #         features_prev_frame = self.backbone(reshaped_list[i]) 
+        #         for key in features.keys():
+        #             features[key] = torch.cat((features[key], features_prev_frame[key]), dim=3)
             
             # for i in range(len(prev_frames[0])):
             #     combined_tensor_list = []
