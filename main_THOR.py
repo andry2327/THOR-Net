@@ -50,7 +50,7 @@ args.output_file = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoint
 output_folder = args.output_file.rpartition(os.sep)[0]
 if not os.path.exists(output_folder):
     os.mkdir(output_folder) 
-args.batch_size = 2
+args.batch_size = 1
 args.num_iteration = 20
 args.object = False 
 args.hid_size = 96
@@ -149,8 +149,8 @@ else: # i.e. HO3D, POV-Surgery
     print(f'✅ Training data loaded.')
     print(f'Loading validation data ...', end=' ')
     # DEBUG
-    # valloader = trainloader # DEBUG
-    valloader = create_loader(args.dataset_name, args.root, 'val', batch_size=args.batch_size, other_params=other_params)
+    valloader = trainloader # DEBUG
+    # valloader = create_loader(args.dataset_name, args.root, 'val', batch_size=args.batch_size, other_params=other_params)
     print(f'✅ Validation data loaded.')
     num_classes = 2 
     graph_input = 'heatmaps'
