@@ -70,16 +70,6 @@ class GeneralizedRCNN(nn.Module):
             images = images['inputs']
             images_mf = [[img] + prev_frame for img, prev_frame in zip(images, prev_frames)]
             
-            all_images = [frame for sublist in images_mf for frame in sublist]
-            
-            original_image_sizes: List[Tuple[int, int]] = []
-            for img in all_images:
-                val = img.shape[-2:]
-                assert len(val) == 2
-                original_image_sizes.append((val[0], val[1]))
-            
-            original_images = [[frame.permute(1, 2, 0) for frame in sublist] for sublist in images_mf]
-            
             # adapt targets
             targets_mf = []
             for i in range(len(targets)):
@@ -90,22 +80,19 @@ class GeneralizedRCNN(nn.Module):
             for i, (images_sample, targets_sample) in enumerate(zip(images_mf, targets_mf)):
                 images_sample, targets_sample = self.transform(images_sample, targets_sample)
                 images_mf[i], targets_mf[i] = images_sample, targets_sample
-        else: # NO self.multiframe
+        else:
             images = images['inputs']
-            
-            original_image_sizes: List[Tuple[int, int]] = []
-            for img in images:
-                val = img.shape[-2:]
-                assert len(val) == 2
-                original_image_sizes.append((val[0], val[1]))
-            
-            original_images = [img.permute(1, 2, 0) for img in images]
-            
-            images, targets = self.transform(images, targets)
-            
-        # old_targets = targets
         
-
+        original_image_sizes: List[Tuple[int, int]] = []
+        for img in images:
+            val = img.shape[-2:]
+            assert len(val) == 2
+            original_image_sizes.append((val[0], val[1]))
+        
+        original_images = [img.permute(1, 2, 0) for img in images]
+            
+        images, targets = self.transform(images, targets)
+            
         # Check for degenerate boxes
         # TODO: Move this to a function
         if targets is not None and not self.multiframe:
@@ -137,37 +124,7 @@ class GeneralizedRCNN(nn.Module):
                 features[key] = concatenated_tensor
         else:
             features = self.backbone(images.tensors) # extract image features
-        # if self.multiframe and prev_frames:
-        #     reshaped_list = []
-        #     for i in range(len(prev_frames)):
-        #         for j in range(len(prev_frames[i])):
-        #             p = prev_frames[i][j]
-        #             p, _ = self.transform([p], old_targets)
-        #             prev_frames[i] = p
-        #     for i in range(len(prev_frames[0])):
-        #         combined_tensor = torch.stack([tensor[i] for tensor in prev_frames])
-        #         reshaped_list.append(combined_tensor)
-        #     for i in range(len(reshaped_list)):
-        #         features_prev_frame = self.backbone(reshaped_list[i]) 
-        #         for key in features.keys():
-        #             features[key] = torch.cat((features[key], features_prev_frame[key]), dim=3)
-            
-            # for i in range(len(prev_frames[0])):
-            #     combined_tensor_list = []
-            #     for pfs in prev_frames:
-            #         pfs, _ = self.transform(pfs, None)
-            #         combined_tensor_list.append(pfs.tensors[i])
-                
-            #     combined_tensor = torch.stack(combined_tensor_list)
-            #     features_prev_frame = self.backbone(combined_tensor)
-            #     features = torch.cat((features, features_prev_frame), dim=0)
-
-            #     # Clear memory for tensors that are no longer needed
-            #     del combined_tensor_list
-            #     del combined_tensor
-            #     del features_prev_frame
-            #     torch.cuda.empty_cache()  # if using GPU   
-                 
+    
         if isinstance(features, torch.Tensor):
             features = OrderedDict([('0', features)])
         proposals, proposal_losses = self.rpn(images, features, targets)

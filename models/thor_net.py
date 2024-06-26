@@ -178,7 +178,7 @@ class THOR(FasterRCNN):
                  multiframe=False):
 
         self.device = device
-        self.multiframe = hands_connectivity_type
+        self.multiframe = multiframe
 
         assert isinstance(keypoint_roi_pool, (MultiScaleRoIAlign, type(None)))
         if min_size is None:
