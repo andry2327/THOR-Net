@@ -9,6 +9,10 @@ import warnings
 from typing import Tuple, List, Dict, Optional, Union
 import os
 
+import torch
+import torch.nn.functional as F
+from typing import List
+
 class GeneralizedRCNN(nn.Module):
     """
     Main class for Generalized R-CNN.
@@ -125,6 +129,10 @@ class GeneralizedRCNN(nn.Module):
             features = OrderedDict()
             for key in features_list[0].keys():
                 tensors = [feature_dict[key] for feature_dict in features_list]
+                # Add padding to tensors if needed, check if all tensors have the same shape first
+                if not all(tensor.shape == tensors[0].shape for tensor in tensors): 
+                    # Pad the tensors to the same shape if they differ
+                    tensors = pad_tensors_to_same_shape(tensors)
                 concatenated_tensor = torch.cat(tensors, dim=0)
                 features[key] = concatenated_tensor
         else:
@@ -175,3 +183,29 @@ class GeneralizedRCNN(nn.Module):
                 warnings.warn("RCNN always returns a (Losses, Detections) tuple in scripting")
                 self._has_warned = True
         return losses, detections
+
+def pad_tensors_to_same_shape(tensors: List[torch.Tensor]) -> List[torch.Tensor]:
+    """
+    Pad a list of tensors to the same shape if they have different shapes.
+
+    Args:
+        tensors (List[torch.Tensor]): List of tensors to be padded.
+
+    Returns:
+        List[torch.Tensor]: List of padded tensors with the same shape.
+    """
+    # Determine the maximum shape for each dimension
+    max_shape = list(tensors[0].shape)
+    for tensor in tensors[1:]:
+        for dim in range(len(max_shape)):
+            max_shape[dim] = max(max_shape[dim], tensor.shape[dim])
+
+    # Pad each tensor to match the maximum shape
+    padded_tensors = []
+    for tensor in tensors:
+        pad_shape = [(0, max_shape[dim] - tensor.shape[dim]) for dim in range(len(max_shape))]
+        pad_shape = [item for sublist in pad_shape for item in sublist]  # Flatten the list of tuples
+        padded_tensor = F.pad(tensor, pad_shape, "constant", 0)
+        padded_tensors.append(padded_tensor)
+    
+    return padded_tensors
