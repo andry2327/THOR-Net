@@ -70,7 +70,7 @@ class MeshGraFormer(nn.Module):
         
         self.adj = [initial_adj.to(self.device)]
         self.adj.extend([torch.from_numpy(scipy.sparse.load_npz(f'{self.adj_matrix_root}/hand{obj}{points_levels[i]}.npz').toarray()).float().to(self.device) for i in range(1, 4)])
-                
+
         gconv_inputs = []
         gconv_layers = []
         attention_layers = []
