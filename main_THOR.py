@@ -149,12 +149,13 @@ if args.dataset_name.lower() == 'h2o':
     graph_input = 'coords'
 else: # i.e. HO3D, POV-Surgery
     print(f'Loading training data ...', end=' ')
-    trainloader = create_loader(args.dataset_name, args.root, 'train', batch_size=args.batch_size, num_kps3d=num_kps3d, num_verts=num_verts, other_params=other_params)
+    trainloader = [] # DEBUG
+    # trainloader = create_loader(args.dataset_name, args.root, 'train', batch_size=args.batch_size, num_kps3d=num_kps3d, num_verts=num_verts, other_params=other_params) # DEBUG
     print(f'✅ Training data loaded.')
     print(f'Loading validation data ...', end=' ')
     # DEBUG
-    valloader = trainloader # DEBUG
-    # valloader = create_loader(args.dataset_name, args.root, 'val', batch_size=args.batch_size, other_params=other_params)
+    # valloader = trainloader # DEBUG
+    valloader = create_loader(args.dataset_name, args.root, 'val', batch_size=args.batch_size, other_params=other_params)
     print(f'✅ Validation data loaded.')
     num_classes = 2 
     graph_input = 'heatmaps'

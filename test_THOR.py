@@ -262,8 +262,9 @@ for i, ts_data in tqdm(enumerate(testloader), total=len(testloader), desc='Evalu
         pass
         
     ### Run inference
-    inputs = [t['inputs'].to(device) for t in data_dict]
-    outputs = model(inputs)
+    inputs = [t['inputs'].to(device) for t in data_dict]    
+    loss_dict, result = model(inputs)
+    outputs = (result, loss_dict)
     img = inputs[0].cpu().detach().numpy()
     
     predictions, img, palm, labels = prepare_data_for_evaluation(data_dict, outputs, img, keys, device, args.split)
