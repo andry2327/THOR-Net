@@ -14,10 +14,12 @@ import sys
 import os
 import datetime
 import pytz
+import cv2
 from tqdm import tqdm
 
 from utils.options import parse_args_function
-from utils.utils import freeze_component, calculate_keypoints, create_loader
+from utils.utils import freeze_component, calculate_keypoints, create_loader, prepare_data_for_evaluation
+from test_THOR import visualize2d
 
 # for H2O dataset only
 # from utils.h2o_utils.h2o_dataset_utils import load_tar_split 
@@ -44,9 +46,9 @@ output_folder = args.output_file.rpartition(os.sep)[0]
 # print('-'*30)
 
 # DEBUG
-args.dataset_name = 'povsurgery' 
+args.dataset_name = 'TEST_DATASET' # ho3d, povsurgery, TEST_DATASET
 args.root = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/povsurgery/object_False' 
-args.output_file = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-TEST-MF--24-06-2024_09-30/model-' 
+args.output_file = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-100samples--20-06-2024_17-08/model-' 
 output_folder = args.output_file.rpartition(os.sep)[0]
 if not os.path.exists(output_folder):
     os.mkdir(output_folder) 
@@ -55,11 +57,13 @@ args.num_iteration = 20
 args.object = False 
 args.hid_size = 96
 args.photometric = True
-args.multiframe = True 
+args.multiframe = False 
 args.log_batch = 1 # frequency to print training losses
 args.val_epoch = 1 # frequency to compute validation loss
-args.pretrained_model=''#'/content/drive/MyDrive/Thesis/THOR-Net_trained_on_POV-Surgery_object_False/Training-1sample-OF--18-06-2024_11-09/model-20.pkl'
+args.pretrained_model='/content/drive/MyDrive/Thesis/THOR-Net_trained_on_POV-Surgery_object_False/Training-100samples--20-06-2024_17-08/model-22.pkl'
 args.hands_connectivity_type = 'base'
+args.visualize = True
+args.output_results = '/content/drive/MyDrive/Thesis/THOR-Net_trained_on_POV-Surgery_object_False/Training-100samples--20-06-2024_17-08/output_results'
 
 other_params = {
     'IS_SAMPLE_DATASET': IS_SAMPLE_DATASET,
@@ -276,7 +280,8 @@ for epoch in range(start, start + args.num_iterations):  # loop over the dataset
                     pass
         min_total_loss = loss.data
         
-
+    # ''' ------------------------ VALIDATION ------------------------ '''
+    
     if (epoch+1) % args.val_epoch == 0:
         val_loss2d = 0.0
         val_loss3d = 0.0
@@ -305,6 +310,34 @@ for epoch in range(start, start + args.num_iterations):  # loop over the dataset
             val_mesh_loss3d += loss_dict['loss_mesh3d'].data
             if 'loss_photometric' in loss_dict.keys():
                 running_photometric_loss += loss_dict['loss_photometric'].data
+                
+            # visualizations
+            if args.visualize: 
+                path = data_dict[0]['path'].split(os.sep)[-1]
+                if args.dataset_name=='ho3d' or args.dataset_name=='TEST_DATASET': # choose specific sequence to evaluate
+                    if args.seq not in data_dict[0]['path']:
+                        continue
+                    if '_' in path:
+                        path = path.split('_')[-1]
+                    frame_num = int(path.split('.')[0])
+                elif args.dataset_name=='povsurgery':
+                    seq_name = data_dict[0]['path'].split(os.sep)[-2]
+                else:
+                    pass
+                
+                outputs = (result, loss_dict)
+                
+                predictions, img, palm, labels = prepare_data_for_evaluation(data_dict, outputs, img, keys, device, args.split)
+                
+                name = path.split(os.sep)[-1]
+                output_dir = os.path.join(args.output_results, seq_name)
+                if not os.path.exists(output_dir):
+                    os.makedirs(output_dir)
+
+                if (num_classes == 2 and 1 in predictions['labels']) or (num_classes == 4 and set([1, 2, 3]).issubset(predictions['labels'])):
+                    visualize2d(img, predictions, labels, filename=f'{os.path.join(output_dir, name)}', palm=palm, evaluate=True)
+                else:
+                    cv2.imwrite(f'{os.path.join(output_dir, name)}', cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
             
             pbar.update(1)
         pbar.close()

@@ -65,23 +65,24 @@ class GeneralizedRCNN(nn.Module):
                 else:
                     raise ValueError("Expected target boxes to be of type "
                                      "Tensor, got {:}.".format(type(boxes)))
-        if self.multiframe and 'prev_frames' in images:
-            prev_frames = images['prev_frames']
-            images = images['inputs']
-            images_mf = [[img] + prev_frame for img, prev_frame in zip(images, prev_frames)]
-            
-            # adapt targets
-            targets_mf = []
-            for i in range(len(targets)):
-                target = targets[i]
-                new_target = [target for _ in range(len(images_mf[i]))]
-                targets_mf.append(new_target)
-            
-            for i, (images_sample, targets_sample) in enumerate(zip(images_mf, targets_mf)):
-                images_sample, targets_sample = self.transform(images_sample, targets_sample)
-                images_mf[i], targets_mf[i] = images_sample, targets_sample
-        else:
-            images = images['inputs']
+        if self.training:
+            if self.multiframe and 'prev_frames' in images:
+                prev_frames = images['prev_frames']
+                images = images['inputs']
+                images_mf = [[img] + prev_frame for img, prev_frame in zip(images, prev_frames)]
+                
+                # adapt targets
+                targets_mf = []
+                for i in range(len(targets)):
+                    target = targets[i]
+                    new_target = [target for _ in range(len(images_mf[i]))]
+                    targets_mf.append(new_target)
+                
+                for i, (images_sample, targets_sample) in enumerate(zip(images_mf, targets_mf)):
+                    images_sample, targets_sample = self.transform(images_sample, targets_sample)
+                    images_mf[i], targets_mf[i] = images_sample, targets_sample
+            else:
+                images = images['inputs']
         
         original_image_sizes: List[Tuple[int, int]] = []
         for img in images:

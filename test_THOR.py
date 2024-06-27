@@ -22,6 +22,16 @@ from utils.options import parse_args_function
 import warnings
 warnings.filterwarnings('ignore')
 
+'------------------ OTHER INPUT PARAMETERS ------------------'
+IS_SAMPLE_DATASET = True # to use a sample of original dataset
+TRAINING_SUBSET_SIZE = 100
+VALIDATION_SUBSET_SIZE = 10
+'------------------------------------------------------------'
+'------------------ INPUT PARAMETERS for MULTI-FRAME features ------------------'
+N_PREVIOUS_FRAMES = 1
+STRIDE_PREVIOUS_FRAMES = 3
+'-------------------------------------------------------------------------------'
+
 # Input parameters
 args = parse_args_function()
 is_sample_dataset = True
@@ -30,7 +40,7 @@ is_sample_dataset = True
 args.testing = True
 args.dataset_name = 'TEST_DATASET' # TEST_DATASET, povsurgery, ho3d
 args.root = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/povsurgery/object_False' 
-args.checkpoint_model = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-1sample-OF--18-06-2024_11-09/model-41.pkl'
+args.checkpoint_model = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-100samples--20-06-2024_17-08/model-22.pkl'
 args.mano_root = '/content/drive/MyDrive/Thesis/mano_v1_2/models'
 args.obj_root = '/content/THOR-Net/datasets/objects/mesh_1000/book.obj'
 args.split = 'test'
@@ -44,6 +54,15 @@ args.hands_connectivity_type = 'base'
 args.visualize = True
 # --object \
     
+other_params = {
+    'IS_SAMPLE_DATASET': IS_SAMPLE_DATASET,
+    'TRAINING_SUBSET_SIZE': TRAINING_SUBSET_SIZE,
+    'VALIDATION_SUBSET_SIZE': VALIDATION_SUBSET_SIZE,
+    'IS_MULTIFRAME': False,
+    'N_PREVIOUS_FRAMES': N_PREVIOUS_FRAMES,
+    'STRIDE_PREVIOUS_FRAMES': STRIDE_PREVIOUS_FRAMES
+}    
+
 print(f'args:')
 for arg, value in vars(args).items():
     print(f"{arg}: {value}", end=' | ')
@@ -135,11 +154,23 @@ if args.dataset_name == 'h2o':
     testloader = torch.utils.data.DataLoader(datapipe, batch_size=args.batch_size, num_workers=2, shuffle=True)
     num_classes = 4
     graph_input='coords'
-elif 'TEST_DATASET': # DEBUG
-    print(f'🟠 Using custom test dataset')
-    args.split='train'
-    print(f'Loading TEST_DATASET data ...', end=' ')
-    testset = Dataset(root=args.root, load_set=args.split, transform=transform_function, num_kps3d=num_kps3d, num_verts=num_verts)
+elif args.dataset_name == 'TEST_DATASET': # DEBUG
+    print(f'🟠 Using custom test dataset,', end=' ')
+    seq = 'd_diskplacer_1/00145'
+    split = 'train'
+    print(f'Loading TEST_DATASET data ({seq}) ...')
+    testset = Dataset(root=args.root, load_set=args.split, transform=transform_function, num_kps3d=num_kps3d, num_verts=num_verts, other_params=other_params)
+    pbar = tqdm(total=len(testset))
+    for i, x in enumerate(testset):
+        if seq in x['path']:
+            print(f'seq {seq} found')
+            indices = [i]
+            pbar.close()
+            break
+        else:
+            pbar.update(1)
+    print(f'Index for "{seq}" found ...', end=' ')
+    testset = Subset(testset, indices)
     testloader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size, shuffle=False, num_workers=2, collate_fn=ho3d_collate_fn)
     num_classes = 2
     graph_input='heatmaps'
