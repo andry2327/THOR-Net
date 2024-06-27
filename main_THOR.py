@@ -19,7 +19,6 @@ from tqdm import tqdm
 
 from utils.options import parse_args_function
 from utils.utils import freeze_component, calculate_keypoints, create_loader, prepare_data_for_evaluation
-from test_THOR import visualize2d
 
 # for H2O dataset only
 # from utils.h2o_utils.h2o_dataset_utils import load_tar_split 
@@ -62,8 +61,8 @@ args.log_batch = 1 # frequency to print training losses
 args.val_epoch = 1 # frequency to compute validation loss
 args.pretrained_model='/content/drive/MyDrive/Thesis/THOR-Net_trained_on_POV-Surgery_object_False/Training-100samples--20-06-2024_17-08/model-22.pkl'
 args.hands_connectivity_type = 'base'
-args.visualize = True
-args.output_results = '/content/drive/MyDrive/Thesis/THOR-Net_trained_on_POV-Surgery_object_False/Training-100samples--20-06-2024_17-08/output_results'
+# args.visualize = True
+# args.output_results = '/content/drive/MyDrive/Thesis/THOR-Net_trained_on_POV-Surgery_object_False/Training-100samples--20-06-2024_17-08/output_results'
 
 other_params = {
     'IS_SAMPLE_DATASET': IS_SAMPLE_DATASET,
@@ -313,7 +312,8 @@ for epoch in range(start, start + args.num_iterations):  # loop over the dataset
                 running_photometric_loss += loss_dict['loss_photometric'].data
                 
             # visualizations
-            if args.visualize: 
+            '''if args.visualize: 
+                from test_THOR import visualize2d
                 path = data_dict[0]['path'].split(os.sep)[-1]
                 if args.dataset_name=='ho3d' or args.dataset_name=='TEST_DATASET': # choose specific sequence to evaluate
                     if args.seq not in data_dict[0]['path']:
@@ -339,7 +339,7 @@ for epoch in range(start, start + args.num_iterations):  # loop over the dataset
                     visualize2d(img, predictions, labels, filename=f'{os.path.join(output_dir, name)}', palm=palm, evaluate=True)
                 else:
                     cv2.imwrite(f'{os.path.join(output_dir, name)}', cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
-            
+            '''
             pbar.update(1)
         pbar.close()
         
