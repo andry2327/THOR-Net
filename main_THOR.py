@@ -28,7 +28,7 @@ from models.thor_net import create_thor
 torch.multiprocessing.set_sharing_strategy('file_system')
 
 '------------------ OTHER INPUT PARAMETERS ------------------'
-IS_SAMPLE_DATASET = True # to use a sample of original dataset
+IS_SAMPLE_DATASET = False # to use a sample of original dataset
 TRAINING_SUBSET_SIZE = 100
 VALIDATION_SUBSET_SIZE = 10
 '------------------------------------------------------------'
@@ -47,7 +47,7 @@ output_folder = args.output_file.rpartition(os.sep)[0]
 # DEBUG
 args.dataset_name = 'TEST_DATASET' # ho3d, povsurgery, TEST_DATASET
 args.root = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/povsurgery/object_False' 
-args.output_file = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-100samples--20-06-2024_17-08/model-' 
+args.output_file = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-KE--01-07-2024_10-27/model-' 
 output_folder = args.output_file.rpartition(os.sep)[0]
 if not os.path.exists(output_folder):
     os.mkdir(output_folder) 
@@ -59,7 +59,7 @@ args.photometric = True
 args.multiframe = False 
 args.log_batch = 1 # frequency to print training losses
 args.val_epoch = 1 # frequency to compute validation loss
-args.pretrained_model='/content/drive/MyDrive/Thesis/THOR-Net_trained_on_POV-Surgery_object_False/Training-100samples--20-06-2024_17-08/model-22.pkl'
+args.pretrained_model=''#'/content/drive/MyDrive/Thesis/THOR-Net_trained_on_POV-Surgery_object_False/Training-100samples--20-06-2024_17-08/model-22.pkl'
 args.hands_connectivity_type = 'base'
 # args.visualize = True
 # args.output_results = '/content/drive/MyDrive/Thesis/THOR-Net_trained_on_POV-Surgery_object_False/Training-100samples--20-06-2024_17-08/output_results'
@@ -148,8 +148,8 @@ if args.dataset_name.lower() == 'h2o':
     graph_input = 'coords'
 else: # i.e. HO3D, POV-Surgery
     print(f'Loading training data ...', end=' ')
-    trainloader = [] # DEBUG
-    # trainloader = create_loader(args.dataset_name, args.root, 'train', batch_size=args.batch_size, num_kps3d=num_kps3d, num_verts=num_verts, other_params=other_params) # DEBUG
+    # trainloader = [] # DEBUG
+    trainloader = create_loader(args.dataset_name, args.root, 'train', batch_size=args.batch_size, num_kps3d=num_kps3d, num_verts=num_verts, other_params=other_params) # DEBUG
     print(f'✅ Training data loaded.')
     print(f'Loading validation data ...', end=' ')
     # DEBUG
