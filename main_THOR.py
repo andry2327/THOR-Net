@@ -169,6 +169,9 @@ model = create_thor(num_kps2d=num_kps2d, num_kps3d=num_kps3d, num_verts=num_vert
                                 hands_connectivity_type=args.hands_connectivity_type,
                                 multiframe=args.multiframe)
 
+# pytorch_total_params = sum(p.numel() for p in model.parameters()) # DEBUG
+# print(f'# params THOR-Net: {pytorch_total_params}') # DEBUG
+
 print('THOR-Net is loaded')
 
 if torch.cuda.is_available():
