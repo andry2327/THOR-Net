@@ -8,6 +8,10 @@ from torchvision.models.detection import _utils as det_utils
 from typing import Optional, List, Dict, Tuple
 from .rcnn_loss import *
 
+# DEBUG time
+from utils.utils_shared import log_time_file_path
+import datetime
+
 class RoIHeads(nn.Module):
     __annotations__ = {
         'box_coder': det_utils.BoxCoder,
@@ -353,7 +357,11 @@ class RoIHeads(nn.Module):
                     graformer_inputs = keypoints2d.view(batch, num_classes * kps, dimension)[:, :self.num_kps3d, :2]                
                 
                 # Estimate 3D pose
+                with open(log_time_file_path, 'a') as file:
+                    file.write(f'{datetime.datetime.now()} | START keypoints3d prediction\n')
                 keypoint3d = self.keypoint_graformer(graformer_inputs)
+                with open(log_time_file_path, 'a') as file:
+                    file.write(f'{datetime.datetime.now()} | END keypoints3d prediction\n')
                 
                 # Extract features from RoIs
                 graformer_features = self.feature_extractor(graformer_features)
@@ -367,7 +375,11 @@ class RoIHeads(nn.Module):
                 
                 # Pass features and pose to Coarse-to-fine GraFormer
                 mesh_graformer_inputs = torch.cat((graformer_inputs, graformer_features), axis=2)
+                with open(log_time_file_path, 'a') as file:
+                    file.write(f'{datetime.datetime.now()} | START mesh3d prediction\n')
                 mesh3d = self.mesh_graformer(mesh_graformer_inputs)
+                with open(log_time_file_path, 'a') as file:
+                    file.write(f'{datetime.datetime.now()} | END mesh3d prediction\n')
             
             loss_keypoint = {}
             

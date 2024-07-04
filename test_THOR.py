@@ -22,8 +22,18 @@ from utils.options import parse_args_function
 import warnings
 warnings.filterwarnings('ignore')
 
+### DEBUG time
+from utils.utils_shared import log_time_file_path
+import datetime
+
+with open(log_time_file_path, 'w') as file:
+    file.write(f'Logging timing for THOR-Net, model-18 checkpoint trained on HO-3D, using 1 GPU ({datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")})\n\n')
+    file.write('-'*50)
+    file.write('\n\n')
+### DEBUG time  
+
 '------------------ OTHER INPUT PARAMETERS ------------------'
-IS_SAMPLE_DATASET = True # to use a sample of original dataset
+IS_SAMPLE_DATASET = False # to use a sample of original dataset
 TRAINING_SUBSET_SIZE = 100
 VALIDATION_SUBSET_SIZE = 10
 '------------------------------------------------------------'
@@ -34,25 +44,26 @@ STRIDE_PREVIOUS_FRAMES = 3
 
 # Input parameters
 args = parse_args_function()
-is_sample_dataset = True
 
 # DEBUG
 args.testing = True
-args.dataset_name = 'TEST_DATASET' # TEST_DATASET, povsurgery, ho3d
-args.root = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/povsurgery/object_False' 
-args.checkpoint_model = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-100samples--20-06-2024_17-08/model-22.pkl'
+args.dataset_name = 'ho3d' # TEST_DATASET, povsurgery, ho3d
+args.root = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/ho3d'#'/content/drive/MyDrive/Thesis/THOR-Net_based_work/povsurgery/object_False' 
+args.checkpoint_model = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_HO3D/model-18.pkl'
 args.mano_root = '/content/drive/MyDrive/Thesis/mano_v1_2/models'
 args.obj_root = '/content/THOR-Net/datasets/objects/mesh_1000/book.obj'
 args.split = 'test'
-args.seq = 'd_diskplacer_1/00145'
-args.output_results = '/content/drive/MyDrive/Thesis/THOR-Net_based_work'
+args.seq = ''#'d_diskplacer_1/00145'
+args.output_results = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/output_results'
 args.gpu_number = 0
 args.batch_size = 1
 args.hid_size = 96
 args.photometric = True
 args.hands_connectivity_type = 'base'
-args.visualize = True
-# --object \
+args.visualize = False
+args.object = True
+
+is_evaluate = False
     
 other_params = {
     'IS_SAMPLE_DATASET': IS_SAMPLE_DATASET,
@@ -177,8 +188,8 @@ elif args.dataset_name == 'TEST_DATASET': # DEBUG
     print(f'✅ TEST_DATASET data loaded.')
 else:
     print(f'Loading evaluation data ...', end=' ')
-    testset = Dataset(root=args.root, load_set=args.split, transform=transform_function, num_kps3d=num_kps3d, num_verts=num_verts)
-    if is_sample_dataset:
+    testset = Dataset(root=args.root, load_set=args.split, transform=transform_function, num_kps3d=num_kps3d, num_verts=num_verts, other_params=other_params)
+    if IS_SAMPLE_DATASET:
         print('Sub-dataset creation ...', end=' ')
         subset_size = 10
         indices = list(range(subset_size))
@@ -242,7 +253,8 @@ output_dicts = ({}, {})
 evaluate = False
 errors = [[], [], [], [], [], []]
 # if args.split == 'test' or (args.dataset_name == 'h2o' and args.split == 'test'):  
-evaluate = True  
+if is_evaluate:
+    evaluate = True
 
 # rgb_errors = []
 
@@ -263,11 +275,17 @@ for i, ts_data in tqdm(enumerate(testloader), total=len(testloader), desc='Evalu
         
     ### Run inference
     inputs = [t['inputs'].to(device) for t in data_dict]
+    
+    # DEBUG time
+    with open(log_time_file_path, 'a') as file:
+        file.write(f'{datetime.datetime.now()} | START Inputs {i+1}\n')
     _, result = model(inputs)
+    with open(log_time_file_path, 'a') as file:
+        file.write(f'{datetime.datetime.now()} | END Inputs {i+1}\n')
     outputs = (result, _)
     img = inputs[0].cpu().detach().numpy()
     
-    predictions, img, palm, labels = prepare_data_for_evaluation(data_dict, outputs, img, keys, device, args.split)
+    # predictions, img, palm, labels = prepare_data_for_evaluation(data_dict, outputs, img, keys, device, args.split) DEBUG
 
     ### Visualization
     if args.visualize: 
