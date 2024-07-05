@@ -23,13 +23,13 @@ import warnings
 warnings.filterwarnings('ignore')
 
 ### DEBUG time
-from utils.utils_shared import log_time_file_path
-import datetime
+# from utils.utils_shared import log_time_file_path
+# import datetime
 
-with open(log_time_file_path, 'w') as file:
-    file.write(f'Logging timing for THOR-Net, model-18 checkpoint trained on HO-3D, using 1 GPU ({datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")})\n\n')
-    file.write('-'*50)
-    file.write('\n\n')
+# with open(log_time_file_path, 'w') as file:
+#     file.write(f'Logging timing for THOR-Net, model-18 checkpoint trained on HO-3D, using 1 GPU ({datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")})\n\n')
+#     file.write('-'*50)
+#     file.write('\n\n')
 ### DEBUG time  
 
 '------------------ OTHER INPUT PARAMETERS ------------------'
@@ -267,7 +267,7 @@ for i, ts_data in tqdm(enumerate(testloader), total=len(testloader), desc='Evalu
             continue
         if '_' in path:
             path = path.split('_')[-1]
-        frame_num = int(path.split('.')[0])
+        # frame_num = int(path.split('.')[0])
     elif args.dataset_name=='povsurgery':
         seq_name = data_dict[0]['path'].split(os.sep)[-2]
     else:
@@ -276,12 +276,12 @@ for i, ts_data in tqdm(enumerate(testloader), total=len(testloader), desc='Evalu
     ### Run inference
     inputs = [t['inputs'].to(device) for t in data_dict]
     
-    # DEBUG time
-    with open(log_time_file_path, 'a') as file:
-        file.write(f'{datetime.datetime.now()} | START Inputs {i+1}\n')
+    # # DEBUG time
+    # with open(log_time_file_path, 'a') as file:
+    #     file.write(f'{datetime.datetime.now()} | START Inputs {i+1}\n')
     _, result = model(inputs)
-    with open(log_time_file_path, 'a') as file:
-        file.write(f'{datetime.datetime.now()} | END Inputs {i+1}\n')
+    # with open(log_time_file_path, 'a') as file:
+    #     file.write(f'{datetime.datetime.now()} | END Inputs {i+1}\n')
     outputs = (result, _)
     img = inputs[0].cpu().detach().numpy()
     

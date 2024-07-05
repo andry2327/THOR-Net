@@ -127,29 +127,29 @@ class GeneralizedRCNN(nn.Module):
                 concatenated_tensor = torch.cat(tensors, dim=0)
                 features[key] = concatenated_tensor
         else:
-            with open(log_time_file_path, 'a') as file:
-                file.write(f'{datetime.datetime.now()} | START features extraction\n')
+            # with open(log_time_file_path, 'a') as file:
+            #     file.write(f'{datetime.datetime.now()} | START features extraction\n')
             features = self.backbone(images.tensors) # extract image features
-            with open(log_time_file_path, 'a') as file:
-                file.write(f'{datetime.datetime.now()} | END features extraction\n')
+            # with open(log_time_file_path, 'a') as file:
+            #     file.write(f'{datetime.datetime.now()} | END features extraction\n')
     
         if isinstance(features, torch.Tensor):
             features = OrderedDict([('0', features)])
-        with open(log_time_file_path, 'a') as file:
-            file.write(f'{datetime.datetime.now()} | START rpn proposals\n')
+        # with open(log_time_file_path, 'a') as file:
+        #     file.write(f'{datetime.datetime.now()} | START rpn proposals\n')
         proposals, proposal_losses = self.rpn(images, features, targets)
-        with open(log_time_file_path, 'a') as file:
-            file.write(f'{datetime.datetime.now()} | END rpn proposals\n')
-        with open(log_time_file_path, 'a') as file:
-            file.write(f'{datetime.datetime.now()} | START roi_heads\n')
+        # with open(log_time_file_path, 'a') as file:
+        #     file.write(f'{datetime.datetime.now()} | END rpn proposals\n')
+        # with open(log_time_file_path, 'a') as file:
+        #     file.write(f'{datetime.datetime.now()} | START roi_heads\n')
         detections, detector_losses = self.roi_heads(features, proposals, images.image_sizes, original_images, targets)
-        with open(log_time_file_path, 'a') as file:
-            file.write(f'{datetime.datetime.now()} | END roi_heads\n')
-        with open(log_time_file_path, 'a') as file:
-            file.write(f'{datetime.datetime.now()} | START self.transform.postprocess\n')
+        # with open(log_time_file_path, 'a') as file:
+        #     file.write(f'{datetime.datetime.now()} | END roi_heads\n')
+        # with open(log_time_file_path, 'a') as file:
+        #     file.write(f'{datetime.datetime.now()} | START self.transform.postprocess\n')
         detections = self.transform.postprocess(detections, images.image_sizes, original_image_sizes)
-        with open(log_time_file_path, 'a') as file:
-            file.write(f'{datetime.datetime.now()} | START self.transform.postprocess\n')
+        # with open(log_time_file_path, 'a') as file:
+        #     file.write(f'{datetime.datetime.now()} | START self.transform.postprocess\n')
 
         losses = {}
         losses.update(detector_losses)
