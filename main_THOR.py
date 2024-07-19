@@ -45,13 +45,13 @@ output_folder = args.output_file.rpartition(os.sep)[0]
 # print('-'*30)
 
 # DEBUG
-args.dataset_name = 'TEST_DATASET' # ho3d, povsurgery, TEST_DATASET
+args.dataset_name = 'povsurgery' # ho3d, povsurgery, TEST_DATASET
 args.root = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/povsurgery/object_False' 
 args.output_file = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-KE--01-07-2024_10-27/model-' 
 output_folder = args.output_file.rpartition(os.sep)[0]
 if not os.path.exists(output_folder):
     os.mkdir(output_folder) 
-args.batch_size = 1
+args.batch_size = 2
 args.num_iteration = 20
 args.object = False 
 args.hid_size = 96
