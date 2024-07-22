@@ -163,7 +163,8 @@ class GeneralizedRCNN(nn.Module):
 
 def pad_tensors_to_same_shape(tensors: List[torch.Tensor]) -> List[torch.Tensor]:
     """
-    Pad a list of tensors to the same shape if they have different shapes.
+    Pad a list of tensors to the same shape if they have different shapes by creating
+    zero tensors with the maximum shape and filling in the original tensor values.
 
     Args:
         tensors (List[torch.Tensor]): List of tensors to be padded.
@@ -177,12 +178,12 @@ def pad_tensors_to_same_shape(tensors: List[torch.Tensor]) -> List[torch.Tensor]
         for dim in range(len(max_shape)):
             max_shape[dim] = max(max_shape[dim], tensor.shape[dim])
 
-    # Pad each tensor to match the maximum shape
+    # Create zero tensors with the maximum shape and fill in the original tensor values
     padded_tensors = []
     for tensor in tensors:
-        pad_shape = [(0, max_shape[dim] - tensor.shape[dim]) for dim in range(len(max_shape))]
-        pad_shape = [item for sublist in pad_shape for item in sublist]  # Flatten the list of tuples
-        padded_tensor = F.pad(tensor, pad_shape, "constant", 0)
+        padded_tensor = torch.zeros(*max_shape, dtype=tensor.dtype, device=tensor.device)
+        slices = tuple(slice(0, dim) for dim in tensor.shape)
+        padded_tensor[slices] = tensor
         padded_tensors.append(padded_tensor)
     
     return padded_tensors

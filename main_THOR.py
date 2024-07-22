@@ -33,7 +33,7 @@ TRAINING_SUBSET_SIZE = 100
 VALIDATION_SUBSET_SIZE = 10
 '------------------------------------------------------------'
 '------------------ INPUT PARAMETERS for MULTI-FRAME features ------------------'
-N_PREVIOUS_FRAMES = 1
+N_PREVIOUS_FRAMES = 2
 STRIDE_PREVIOUS_FRAMES = 3
 '-------------------------------------------------------------------------------'
 
@@ -47,7 +47,7 @@ output_folder = args.output_file.rpartition(os.sep)[0]
 # DEBUG
 args.dataset_name = 'povsurgery' # ho3d, povsurgery, TEST_DATASET
 args.root = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/povsurgery/object_False' 
-args.output_file = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-KE--01-07-2024_10-27/model-' 
+args.output_file = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-KE--22-07-2024_14-04/model-' 
 output_folder = args.output_file.rpartition(os.sep)[0]
 if not os.path.exists(output_folder):
     os.mkdir(output_folder) 
