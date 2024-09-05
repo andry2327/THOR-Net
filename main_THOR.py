@@ -28,8 +28,8 @@ from models.thor_net import create_thor
 torch.multiprocessing.set_sharing_strategy('file_system')
 
 '------------------ OTHER INPUT PARAMETERS ------------------'
-IS_SAMPLE_DATASET = True # to use a sample of original dataset
-TRAINING_SUBSET_SIZE = 1000
+IS_SAMPLE_DATASET = False # to use a sample of original dataset
+TRAINING_SUBSET_SIZE = 100
 VALIDATION_SUBSET_SIZE = 10
 '------------------------------------------------------------'
 '------------------ INPUT PARAMETERS for MULTI-FRAME features ------------------'
