@@ -190,8 +190,9 @@ def keypointrcnn_loss(keypoint_logits, proposals, gt_keypoints, keypoint_matched
     # torch.mean (in binary_cross_entropy_with_logits) does'nt
     # accept empty tensors, so handle it sepaartely
     
-    if keypoint_targets.numel() == 0 or len(valid) == 0:
-        return keypoint_logits.sum() * 0
+    # comment above is not valid for recent pytorch version 2.4.0, so code below can be skipped
+    # if keypoint_targets.numel() == 0 or len(valid) == 0:
+    #     return keypoint_logits.sum() * 0
 
     keypoint_logits = keypoint_logits.view(N * K, H * W)
     
@@ -209,14 +210,14 @@ def keypointrcnn_loss(keypoint_logits, proposals, gt_keypoints, keypoint_matched
     N, K, D = keypoint3d_targets.shape
     keypoint3d_pred = keypoint3d_pred.view(N * K, 3)
     keypoint3d_targets = keypoint3d_targets.view(N * K, 3)
-    keypoint3d_loss = F.mse_loss(keypoint3d_pred, keypoint3d_targets) / 1000
+    keypoint3d_loss = F.mse_loss(keypoint3d_pred, keypoint3d_targets) #/ 1000
     
     # 3D shape Loss
     N, K, D = mesh3d_pred[:, :, :3].shape
     xyz_rgb_pred = torch.clone(mesh3d_pred)
     mesh3d_pred = torch.reshape(mesh3d_pred[:, :, :3], (N * K, D))
     mesh3d_targets = torch.reshape(mesh3d_targets, (N * K, D)) 
-    mesh3d_loss = F.mse_loss(mesh3d_pred, mesh3d_targets) / 1000
+    mesh3d_loss = F.mse_loss(mesh3d_pred, mesh3d_targets) #/ 1000
 
     # Photometric Loss
     # To penalize rgb values with the projection of the GT shape, replace predicted xyz with GT xyz

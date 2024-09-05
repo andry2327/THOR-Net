@@ -4,7 +4,7 @@ import pickle
 import torchvision.transforms as transforms
 # for H2O dataset only
 # from .h2o_utils.h2o_datapipe_pt_1_12 import create_datapipe
-from .dataset import Dataset
+from .dataset import Dataset, DatasetPOVSurgery
 from torch.utils.data import Subset
 from tqdm import tqdm
 import os
@@ -59,7 +59,10 @@ def create_loader(dataset_name, root, split, batch_size, num_kps3d=21, num_verts
         dataset = Subset(dataset, indices)
         loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=2, collate_fn=ho3d_collate_fn)
     else:
-        dataset = Dataset(root=root, load_set=split, transform=transform, num_kps3d=num_kps3d, num_verts=num_verts, other_params=other_params)    
+        if dataset_name == 'povsurgery':
+            dataset = DatasetPOVSurgery(root=root, load_set=split, transform=transform, num_kps3d=num_kps3d, num_verts=num_verts, other_params=other_params)    
+        else:
+            dataset = Dataset(root=root, load_set=split, transform=transform, num_kps3d=num_kps3d, num_verts=num_verts, other_params=other_params)    
         if other_params['IS_SAMPLE_DATASET']:
             print('Sub-dataset creation ...', end=' ')
             subset_size = other_params['TRAINING_SUBSET_SIZE'] if split=='train' else other_params['VALIDATION_SUBSET_SIZE']

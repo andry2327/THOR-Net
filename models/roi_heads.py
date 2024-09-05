@@ -396,14 +396,22 @@ class RoIHeads(nn.Module):
                     palms_gt = [t["palm"] for t in targets]
                 else:
                     palms_gt = None
-                
-                rcnn_loss_keypoint, rcnn_loss_keypoint3d, rcnn_loss_mesh3d, rcnn_loss_photometric = keypointrcnn_loss(
-                                                                            keypoint_logits, keypoint_proposals, gt_keypoints, 
-                                                                            pos_matched_idxs, keypoint3d, keypoints3d_gt, 
-                                                                            mesh3d, mesh3d_gt, original_images=original_imgs, 
-                                                                            palms_gt=palms_gt, num_classes=self.num_classes,
-                                                                            photometric=self.photometric, dataset_name=self.dataset_name)
-
+                try:
+                    rcnn_loss_keypoint, rcnn_loss_keypoint3d, rcnn_loss_mesh3d, rcnn_loss_photometric = keypointrcnn_loss(
+                                                                                keypoint_logits, keypoint_proposals, gt_keypoints, 
+                                                                                pos_matched_idxs, keypoint3d, keypoints3d_gt, 
+                                                                                mesh3d, mesh3d_gt, original_images=original_imgs, 
+                                                                                palms_gt=palms_gt, num_classes=self.num_classes,
+                                                                                photometric=self.photometric, dataset_name=self.dataset_name)
+                except Exception as e:
+                    print(f'EROOR')
+                    rcnn_loss_keypoint, rcnn_loss_keypoint3d, rcnn_loss_mesh3d, rcnn_loss_photometric = keypointrcnn_loss(
+                                                                                keypoint_logits, keypoint_proposals, gt_keypoints, 
+                                                                                pos_matched_idxs, keypoint3d, keypoints3d_gt, 
+                                                                                mesh3d, mesh3d_gt, original_images=original_imgs, 
+                                                                                palms_gt=palms_gt, num_classes=self.num_classes,
+                                                                                photometric=self.photometric, dataset_name=self.dataset_name)
+                    
                 loss_keypoint = {
                     "loss_keypoint": rcnn_loss_keypoint,
                     "loss_keypoint3d": rcnn_loss_keypoint3d,

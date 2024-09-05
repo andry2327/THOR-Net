@@ -28,8 +28,8 @@ from models.thor_net import create_thor
 torch.multiprocessing.set_sharing_strategy('file_system')
 
 '------------------ OTHER INPUT PARAMETERS ------------------'
-IS_SAMPLE_DATASET = False # to use a sample of original dataset
-TRAINING_SUBSET_SIZE = 100
+IS_SAMPLE_DATASET = True # to use a sample of original dataset
+TRAINING_SUBSET_SIZE = 1000
 VALIDATION_SUBSET_SIZE = 10
 '------------------------------------------------------------'
 '------------------ INPUT PARAMETERS for MULTI-FRAME features ------------------'
@@ -43,10 +43,11 @@ output_folder = args.output_file.rpartition(os.sep)[0]
 # for arg, value in vars(args).items():
 #     print(f"{arg}: {value}", end=' | ')
 # print('-'*30)
+
 '''
 # DEBUG
 args.dataset_name = 'povsurgery' # ho3d, povsurgery, TEST_DATASET
-args.root = '/home/aidara/Desktop/Thesis_Andrea/data/annotations_POV-Surgey_object_False' 
+args.root = '/home/aidara/Desktop/Thesis_Andrea/data/annotations_POV-Surgey_object_False_NEW_NEW' 
 args.output_file = '/home/aidara/Desktop/Thesis_Andrea/THOR-Net_Experiments/output_folder/Training-SAMPLE3/model-' 
 output_folder = args.output_file.rpartition(os.sep)[0]
 if not os.path.exists(output_folder):
@@ -257,7 +258,7 @@ for epoch in range(start, start + args.num_iterations):  # loop over the dataset
             running_photometric_loss += loss_dict['loss_photometric'].data
 
         if (i+1) % args.log_batch == 0:    # print every args.log_iter mini-batches
-            logging.info('[Epoch %d/%d, Processed data %d/%d] loss 2d: %.4f, loss 3d: %.4f, mesh loss 3d: %.4f, photometric loss: %.4f' % 
+            logging.info('[Epoch %d/%d, Processed data %d/%d] loss 2d: %.8f, loss 3d: %.8f, mesh loss 3d: %.8f, photometric loss: %.8f' % 
             (epoch + 1, start+args.num_iterations, i + 1, len(trainloader), running_loss2d / args.log_batch, running_loss3d / args.log_batch, 
             running_mesh_loss3d / args.log_batch, running_photometric_loss / args.log_batch))
             running_mesh_loss3d = 0.0
@@ -353,9 +354,9 @@ for epoch in range(start, start + args.num_iterations):  # loop over the dataset
         
         # model.module.transform.training = True
         
-        logging.info('Epoch %d/%d - val loss 2d: %.4f, val loss 3d: %.4f, val mesh loss 3d: %.4f, val photometric loss: %.4f' % 
+        logging.info('Epoch %d/%d - val loss 2d: %.8f, val loss 3d: %.8f, val mesh loss 3d: %.8f, val photometric loss: %.8f' % 
                     (epoch + 1, start+args.num_iterations, val_loss2d / (v+1), val_loss3d / (v+1), val_mesh_loss3d / (v+1), running_photometric_loss / (v+1)))  
-        print('Epoch %d/%d - val loss 2d: %.4f, val loss 3d: %.4f, val mesh loss 3d: %.4f, val photometric loss: %.4f' % 
+        print('Epoch %d/%d - val loss 2d: %.8f, val loss 3d: %.8f, val mesh loss 3d: %.8f, val photometric loss: %.8f' % 
                     (epoch + 1, start+args.num_iterations, val_loss2d / (v+1), val_loss3d / (v+1), val_mesh_loss3d / (v+1), running_photometric_loss / (v+1)))  
     
     if args.freeze and epoch == 0:
