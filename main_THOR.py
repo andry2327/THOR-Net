@@ -43,16 +43,16 @@ output_folder = args.output_file.rpartition(os.sep)[0]
 # for arg, value in vars(args).items():
 #     print(f"{arg}: {value}", end=' | ')
 # print('-'*30)
-
+'''
 # DEBUG
 args.dataset_name = 'povsurgery' # ho3d, povsurgery, TEST_DATASET
-args.root = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/povsurgery/object_False' 
-args.output_file = '/content/drive/MyDrive/Thesis/THOR-Net_based_work/checkpoints/THOR-Net_trained_on_POV-Surgery_object_False/Training-KE--22-07-2024_14-04/model-' 
+args.root = '/home/aidara/Desktop/Thesis_Andrea/data/annotations_POV-Surgey_object_False' 
+args.output_file = '/home/aidara/Desktop/Thesis_Andrea/THOR-Net_Experiments/output_folder/Training-SAMPLE3/model-' 
 output_folder = args.output_file.rpartition(os.sep)[0]
 if not os.path.exists(output_folder):
     os.mkdir(output_folder) 
-args.batch_size = 2
-args.num_iteration = 20
+args.batch_size = 8
+args.num_iterations = 10
 args.object = False 
 args.hid_size = 96
 args.photometric = True
@@ -63,6 +63,7 @@ args.pretrained_model=''#'/content/drive/MyDrive/Thesis/THOR-Net_trained_on_POV-
 args.hands_connectivity_type = 'base'
 # args.visualize = True
 # args.output_results = '/content/drive/MyDrive/Thesis/THOR-Net_trained_on_POV-Surgery_object_False/Training-100samples--20-06-2024_17-08/output_results'
+'''
 
 other_params = {
     'IS_SAMPLE_DATASET': IS_SAMPLE_DATASET,
@@ -109,7 +110,7 @@ else:
     # Create a new log file
     filename_log = os.path.join(
         output_folder,
-        f'log_{output_folder.rpartition(os.sep)[-1]}.txt'
+        'log_training.txt'
     )
 
 # Configure the logging
@@ -305,7 +306,11 @@ for epoch in range(start, start + args.num_iterations):  # loop over the dataset
         
             # wrap them in Variable
             targets = [{k: v.to(device) for k, v in t.items() if k in keys} for t in data_dict]
-            inputs = [t['inputs'].to(device) for t in data_dict]    
+            # inputs = [t['inputs'].to(device) for t in data_dict]   
+            inputs = {
+                'inputs': [t['inputs'].to(device) for t in data_dict],
+                'prev_frames': [t['prev_frames'] for t in data_dict if 'prev_frames' in t]
+            } 
             loss_dict, result = model(inputs, targets)
             
             val_loss2d += loss_dict['loss_keypoint'].data

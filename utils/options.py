@@ -40,6 +40,12 @@ def parse_args_function():
         default='',
         help="Type of hand joints connectivity between simple, extended, full"
     )
+    
+    parser.add_argument(
+        "--multiframe",
+        action='store_true',
+        help="Enable multiframe training"
+    )
 
     parser.add_argument(
         "--obj_root",

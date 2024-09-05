@@ -10,6 +10,7 @@ import io
 import torch 
 from PIL import Image
 from .rcnn_utils import calculate_bounding_box, create_rcnn_data
+import re
 
 
 class Dataset(data.Dataset):
@@ -48,6 +49,8 @@ class Dataset(data.Dataset):
         """
 
         image_path = self.images[index]
+        pattern = r' \(\d+\)' # fix 
+        image_path = re.sub(pattern, '', image_path) # fix 
         palm = self.points3d[index][0]
         point2d = self.points2d[index]
         point3d = self.points3d[index] - palm # Center around palm

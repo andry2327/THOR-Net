@@ -5,6 +5,7 @@ from torchvision.ops import MultiScaleRoIAlign
 
 from .faster_rcnn import FasterRCNN, TwoMLPHead
 from torchvision.models.detection.backbone_utils import resnet_fpn_backbone, _validate_trainable_layers
+from torchvision.models import ResNet50_Weights
 from GraFormer.network.GraFormer import GraFormer, adj_mx_from_edges
 from GraFormer.network.MeshGraFormer import MeshGraFormer
 
@@ -14,6 +15,7 @@ __all__ = [
     "KeypointRCNN", "keypointrcnn_resnet50_fpn"
 ]
 
+ADJ_MATRIX_ROOT = '/home/aidara/Desktop/Thesis_Andrea/THOR-Net_Experiments/THOR-Net/GraFormer/adj_matrix'
 
 class THOR(FasterRCNN):
     """
@@ -225,7 +227,7 @@ class THOR(FasterRCNN):
                 output_size += 3
             mesh_graformer = MeshGraFormer(initial_adj=adj.to(device), hid_dim=num_features // 4, coords_dim=(input_size, output_size), 
                             num_kps3d=num_kps3d, num_verts=num_verts, dropout=0.25, 
-                            adj_matrix_root='/content/THOR-Net/GraFormer/adj_matrix')
+                            adj_matrix_root=ADJ_MATRIX_ROOT)
 
         super(THOR, self).__init__(
             backbone, num_classes,
@@ -405,7 +407,8 @@ def create_thor(pretrained=False, progress=True,
         pretrained_backbone = False
 
     # backbone = mobilenet_backbone("mobilenet_v3_large", pretrained_backbone, True, trainable_layers=trainable_backbone_layers)
-    backbone = resnet_fpn_backbone('resnet50', pretrained_backbone, trainable_layers=trainable_backbone_layers)
+    # backbone = resnet_fpn_backbone('resnet50', pretrained_backbone, trainable_layers=trainable_backbone_layers)
+    backbone = resnet_fpn_backbone(backbone_name='resnet50', weights=ResNet50_Weights.IMAGENET1K_V1, trainable_layers=trainable_backbone_layers)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     if not testing: # args: Testing = False (-> model is training)
