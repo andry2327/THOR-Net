@@ -39,6 +39,8 @@ STRIDE_PREVIOUS_FRAMES = 3
 
 args = parse_args_function()
 output_folder = args.output_file.rpartition(os.sep)[0]
+if not os.path.exists(output_folder):
+    os.mkdir(output_folder) 
 # print(f'args:')
 # for arg, value in vars(args).items():
 #     print(f"{arg}: {value}", end=' | ')
