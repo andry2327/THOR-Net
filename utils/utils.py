@@ -66,7 +66,7 @@ def create_loader(dataset_name, root, split, batch_size, num_kps3d=21, num_verts
         if other_params['IS_SAMPLE_DATASET']:
             print('Sub-dataset creation ...', end=' ')
             subset_size = other_params['TRAINING_SUBSET_SIZE'] if split=='train' else other_params['VALIDATION_SUBSET_SIZE']
-            indices = list(range(subset_size))
+            indices = np.random.choice(range(len(dataset)), size=round(subset_size * len(dataset)), replace=False) #list(range(round(subset_size*len(dataset))))
             dataset = Subset(dataset, indices)
         loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=2, collate_fn=ho3d_collate_fn)
     return loader

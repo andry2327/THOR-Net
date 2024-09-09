@@ -11,6 +11,7 @@ import torch.nn as nn
 import torch.optim as optim
 import logging
 import sys
+import shutil
 import os
 import datetime
 import pytz
@@ -27,35 +28,35 @@ from utils.utils import freeze_component, calculate_keypoints, create_loader, pr
 from models.thor_net import create_thor
 torch.multiprocessing.set_sharing_strategy('file_system')
 
+'-------------------------------------------------------------------------------'
+
 '------------------ OTHER INPUT PARAMETERS ------------------'
-IS_SAMPLE_DATASET = False # to use a sample of original dataset
-TRAINING_SUBSET_SIZE = 100
-VALIDATION_SUBSET_SIZE = 10
-'------------------------------------------------------------'
+IS_SAMPLE_DATASET = True # to use a sample of original dataset
+TRAINING_SUBSET_SIZE = 0.1 # fraction of train set
+VALIDATION_SUBSET_SIZE = 0.1 # fraction of validation set
+SAVE_TRAINING_RESULTS = False # Save 3d pose and mesh prediction during training and validation
+
 '------------------ INPUT PARAMETERS for MULTI-FRAME features ------------------'
 N_PREVIOUS_FRAMES = 2
 STRIDE_PREVIOUS_FRAMES = 3
+
 '-------------------------------------------------------------------------------'
 
 args = parse_args_function()
 output_folder = args.output_file.rpartition(os.sep)[0]
 if not os.path.exists(output_folder):
     os.mkdir(output_folder) 
-# print(f'args:')
-# for arg, value in vars(args).items():
-#     print(f"{arg}: {value}", end=' | ')
-# print('-'*30)
 
-'''
+# '''
 # DEBUG
 args.dataset_name = 'povsurgery' # ho3d, povsurgery, TEST_DATASET
 args.root = '/home/aidara/Desktop/Thesis_Andrea/data/annotations_POV-Surgey_object_False_NEW_NEW' 
-args.output_file = '/home/aidara/Desktop/Thesis_Andrea/THOR-Net_Experiments/output_folder/Training-SAMPLE3/model-' 
+args.output_file = '/home/aidara/Desktop/Thesis_Andrea/THOR-Net_Experiments/output_folder/Training-DATASET_FRAC=0.1-BS=8-DEFAULT_PARAMS/model-' 
 output_folder = args.output_file.rpartition(os.sep)[0]
 if not os.path.exists(output_folder):
     os.mkdir(output_folder) 
 args.batch_size = 8
-args.num_iterations = 10
+args.num_iterations = 30
 args.object = False 
 args.hid_size = 96
 args.photometric = True
@@ -64,9 +65,12 @@ args.log_batch = 1 # frequency to print training losses
 args.val_epoch = 1 # frequency to compute validation loss
 args.pretrained_model=''#'/content/drive/MyDrive/Thesis/THOR-Net_trained_on_POV-Surgery_object_False/Training-100samples--20-06-2024_17-08/model-22.pkl'
 args.hands_connectivity_type = 'base'
+args.learning_rate = 0.0001 #1e-12
+args.lr_step = 100
+args.lr_step_gamma = 0.9
 # args.visualize = True
 # args.output_results = '/content/drive/MyDrive/Thesis/THOR-Net_trained_on_POV-Surgery_object_False/Training-100samples--20-06-2024_17-08/output_results'
-'''
+# '''
 
 other_params = {
     'IS_SAMPLE_DATASET': IS_SAMPLE_DATASET,
@@ -76,6 +80,22 @@ other_params = {
     'N_PREVIOUS_FRAMES': N_PREVIOUS_FRAMES,
     'STRIDE_PREVIOUS_FRAMES': STRIDE_PREVIOUS_FRAMES
 }
+
+if SAVE_TRAINING_RESULTS:
+    training_results_folder = 'training_results'
+    training_results_path = os.path.join(output_folder, training_results_folder)
+    if os.path.exists(training_results_path):
+        shutil.rmtree(training_results_path)
+        
+    train_results_path = os.path.join(training_results_path, 'train')
+    if os.path.exists(train_results_path):
+        shutil.rmtree(train_results_path)
+    os.makedirs(train_results_path)
+    
+    val_results_path = os.path.join(training_results_path, 'val')
+    if os.path.exists(val_results_path):
+        shutil.rmtree(val_results_path)
+    os.makedirs(val_results_path) 
 
 # Define device
 device = torch.device(f'cuda:{args.gpu_number[0]}' if torch.cuda.is_available() else 'cpu')
@@ -229,13 +249,16 @@ for epoch in range(start, start + args.num_iterations):  # loop over the dataset
         trainloader = create_loader(args.dataset_name, h2o_data_dir, 'train', args.batch_size, h2o_info=h2o_info)
 
     pbar = tqdm(desc=f'Epoch {epoch+1} - train: ', total=len(trainloader))
+    nan_count = 0
     for i, tr_data in enumerate(trainloader):
         
         # get the inputs
         data_dict = tr_data
         # zero the parameter gradients
         optimizer.zero_grad()
-        
+        # torch.save(data_dict[0]['keypoints3d'], train_results_path+'/keypoints3d.pt')
+        # torch.save(data_dict[0]['mesh3d'], train_results_path+'/mesh3d.pt')
+        # print([x['path'] for x in tr_data]); exit() # DEBUG
         # Forward
         targets = [{k: v.to(device) for k, v in t.items() if k in keys} for t in data_dict]
         inputs = {
@@ -244,14 +267,31 @@ for epoch in range(start, start + args.num_iterations):  # loop over the dataset
         }
         loss_dict, result = model(inputs, targets)
         
+        if SAVE_TRAINING_RESULTS:
+            for i, sample_pred in enumerate(result):
+                frame_path = data_dict[i]['path']
+                seq_name, frame = frame_path.split(os.sep)[-2:]
+                frame = os.path.splitext(frame)[0] 
+                pred_kps3d_path = os.path.join(train_results_path, seq_name, frame, 'keypoints3d', f'kps3d_pred_epoch_{epoch+1}.pt')
+                if not os.path.exists(pred_kps3d_path.rpartition(os.sep)[0]):
+                    os.makedirs(pred_kps3d_path.rpartition(os.sep)[0])
+                torch.save(result[i]['keypoints3d'], pred_kps3d_path)
+                pred_mesh3d_path = os.path.join(train_results_path, seq_name, frame, 'mesh3d', f'mesh3d_pred_epoch_{epoch+1}.pt')
+                if not os.path.exists(pred_mesh3d_path.rpartition(os.sep)[0]):
+                    os.makedirs(pred_mesh3d_path.rpartition(os.sep)[0])
+                torch.save(result[i]['mesh3d'], pred_mesh3d_path)
+        
         # Calculate Loss
-        loss = sum(loss_dict.values())
+        loss = sum(loss_dict.get(k, 0) for k in ['loss_keypoint3d', 'loss_mesh3d', 'loss_photometric'])
         
         # Backpropagate
         loss.backward()
         optimizer.step()
 
         # print statistics
+        if torch.isnan(loss_dict['loss_keypoint']): # fix for nan loss_keypoint
+            nan_count += 1
+            loss_dict['loss_keypoint'].zero_()
         train_loss2d += loss_dict['loss_keypoint'].data
         running_loss2d += loss_dict['loss_keypoint'].data
         running_loss3d += loss_dict['loss_keypoint3d'].data
@@ -261,7 +301,7 @@ for epoch in range(start, start + args.num_iterations):  # loop over the dataset
 
         if (i+1) % args.log_batch == 0:    # print every args.log_iter mini-batches
             logging.info('[Epoch %d/%d, Processed data %d/%d] loss 2d: %.8f, loss 3d: %.8f, mesh loss 3d: %.8f, photometric loss: %.8f' % 
-            (epoch + 1, start+args.num_iterations, i + 1, len(trainloader), running_loss2d / args.log_batch, running_loss3d / args.log_batch, 
+            (epoch + 1, start+args.num_iterations, i + 1, len(trainloader), (running_loss2d / args.log_batch)-nan_count, running_loss3d / args.log_batch, 
             running_mesh_loss3d / args.log_batch, running_photometric_loss / args.log_batch))
             running_mesh_loss3d = 0.0
             running_loss2d = 0.0
@@ -273,20 +313,20 @@ for epoch in range(start, start + args.num_iterations):  # loop over the dataset
     
     losses.append((train_loss2d / (i+1)).cpu().numpy())
     
-    if (epoch+1) % args.snapshot_epoch == 0 and loss.data < min_total_loss: # save model only if total loss is lower than minimum reached
-        torch.save(model.state_dict(), args.output_file+str(epoch+1)+'.pkl')
-        np.save(args.output_file+str(epoch+1)+'-losses.npy', np.array(losses))
-        print(f'Model checkpoint (epoch {epoch+1}) saved in "{output_folder}"')
-        # delete files from older epochs
-        if epoch+1 > 1:
-            files_to_delete = [x for x in os.listdir(output_folder) if f'model-' in x and f'model-{epoch+1}' not in x]
-            for file in files_to_delete:
-                try:
-                    os.remove(os.path.join(output_folder, file))
-                except:
-                    pass
-        min_total_loss = loss.data
-        
+    # if (epoch+1) % args.snapshot_epoch == 0 and loss.data < min_total_loss: # save model only if total loss is lower than minimum reached
+    #     torch.save(model.state_dict(), args.output_file+str(epoch+1)+'.pkl')
+    #     np.save(args.output_file+str(epoch+1)+'-losses.npy', np.array(losses))
+    #     print(f'Model checkpoint (epoch {epoch+1}) saved in "{output_folder}"')
+    #     # delete files from older epochs
+    #     if epoch+1 > 1:
+    #         files_to_delete = [x for x in os.listdir(output_folder) if f'model-' in x and f'model-{epoch+1}' not in x]
+    #         for file in files_to_delete:
+    #             try:
+    #                 os.remove(os.path.join(output_folder, file))
+    #             except:
+    #                 pass
+    #     min_total_loss = loss.data
+    
     # ''' ------------------------ VALIDATION ------------------------ '''
     
     if (epoch+1) % args.val_epoch == 0:
@@ -302,6 +342,7 @@ for epoch in range(start, start + args.num_iterations):  # loop over the dataset
             valloader = create_loader(args.dataset_name, h2o_data_dir, 'val', args.batch_size, h2o_info)
 
         pbar = tqdm(desc=f'Epoch {epoch+1} - val: ', total=len(valloader))
+        nan_count = 0
         for v, val_data in enumerate(valloader):
             
             # get the inputs
@@ -316,11 +357,28 @@ for epoch in range(start, start + args.num_iterations):  # loop over the dataset
             } 
             loss_dict, result = model(inputs, targets)
             
+            if SAVE_TRAINING_RESULTS:
+                for i, sample_pred in enumerate(result):
+                    frame_path = data_dict[i]['path']
+                    seq_name, frame = frame_path.split(os.sep)[-2:]
+                    frame = os.path.splitext(frame)[0] 
+                    pred_kps3d_path = os.path.join(val_results_path, seq_name, frame, 'keypoints3d', f'kps3d_pred_epoch_{epoch+1}.pt')
+                    if not os.path.exists(pred_kps3d_path.rpartition(os.sep)[0]):
+                        os.makedirs(pred_kps3d_path.rpartition(os.sep)[0])
+                    torch.save(result[i]['keypoints3d'], pred_kps3d_path)
+                    pred_mesh3d_path = os.path.join(val_results_path, seq_name, frame, 'mesh3d', f'mesh3d_pred_epoch_{epoch+1}.pt')
+                    if not os.path.exists(pred_mesh3d_path.rpartition(os.sep)[0]):
+                        os.makedirs(pred_mesh3d_path.rpartition(os.sep)[0])
+                    torch.save(result[i]['mesh3d'], pred_mesh3d_path)
+            
+            if torch.isnan(loss_dict['loss_keypoint']): # fix for nan loss_keypoint
+                nan_count += 1
+                loss_dict['loss_keypoint'].zero_()
             val_loss2d += loss_dict['loss_keypoint'].data
             val_loss3d += loss_dict['loss_keypoint3d'].data
             val_mesh_loss3d += loss_dict['loss_mesh3d'].data
             if 'loss_photometric' in loss_dict.keys():
-                running_photometric_loss += loss_dict['loss_photometric'].data
+                val_photometric_loss += loss_dict['loss_photometric'].data
                 
             # visualizations
             '''if args.visualize: 
@@ -357,10 +415,25 @@ for epoch in range(start, start + args.num_iterations):  # loop over the dataset
         # model.module.transform.training = True
         
         logging.info('Epoch %d/%d - val loss 2d: %.8f, val loss 3d: %.8f, val mesh loss 3d: %.8f, val photometric loss: %.8f' % 
-                    (epoch + 1, start+args.num_iterations, val_loss2d / (v+1), val_loss3d / (v+1), val_mesh_loss3d / (v+1), running_photometric_loss / (v+1)))  
+                    (epoch + 1, start+args.num_iterations, val_loss2d / (v+1-nan_count), val_loss3d / (v+1), val_mesh_loss3d / (v+1), val_photometric_loss / (v+1)))  
         print('Epoch %d/%d - val loss 2d: %.8f, val loss 3d: %.8f, val mesh loss 3d: %.8f, val photometric loss: %.8f' % 
-                    (epoch + 1, start+args.num_iterations, val_loss2d / (v+1), val_loss3d / (v+1), val_mesh_loss3d / (v+1), running_photometric_loss / (v+1)))  
-    
+                    (epoch + 1, start+args.num_iterations, val_loss2d / (v+1-nan_count), val_loss3d / (v+1), val_mesh_loss3d / (v+1), val_photometric_loss / (v+1))) 
+
+        tot_val_losses =  (val_loss3d / (v+1)) + (val_mesh_loss3d / (v+1)) + (val_photometric_loss / (v+1))
+        if (epoch+1) % args.snapshot_epoch == 0 and tot_val_losses < min_total_loss: # save model only if total val loss is lower than minimum reached
+            torch.save(model.state_dict(), args.output_file+str(epoch+1)+'.pkl')
+            np.save(args.output_file+str(epoch+1)+'-losses.npy', np.array(losses))
+            print(f'Model checkpoint (epoch {epoch+1}) saved in "{output_folder}"')
+            # delete files from older epochs
+            if epoch+1 > 1:
+                files_to_delete = [x for x in os.listdir(output_folder) if f'model-' in x and f'model-{epoch+1}' not in x]
+                for file in files_to_delete:
+                    try:
+                        os.remove(os.path.join(output_folder, file))
+                    except:
+                        pass
+            min_total_loss = tot_val_losses
+        
     if args.freeze and epoch == 0:
         logging.info('Freezing Keypoint RCNN ..')            
         freeze_component(model.module.backbone)
