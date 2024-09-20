@@ -28,7 +28,6 @@ def sparse_mx_to_torch_sparse_tensor(sparse_mx):
     shape = torch.Size(sparse_mx.shape)
     return torch.sparse.FloatTensor(indices, values, shape)
 
-
 def adj_mx_from_edges(num_pts, edges, sparse=True):
     edges = np.array(edges, dtype=np.int32)
     data, i, j = np.ones(edges.shape[0]), edges[:, 0], edges[:, 1]
@@ -36,7 +35,7 @@ def adj_mx_from_edges(num_pts, edges, sparse=True):
 
     # build symmetric adjacency matrix
     adj_mx = adj_mx + adj_mx.T.multiply(adj_mx.T > adj_mx) - adj_mx.multiply(adj_mx.T > adj_mx)
-    adj_mx = normalize(adj_mx + sp.eye(adj_mx.shape[0]))
+    # adj_mx = normalize(adj_mx + sp.eye(adj_mx.shape[0])) # ENABLE this to use a normalized matrix
     # adj_mx = (adj_mx + adj_mx.T) / 2 # DEBUG
     if sparse:
         adj_mx = sparse_mx_to_torch_sparse_tensor(adj_mx)

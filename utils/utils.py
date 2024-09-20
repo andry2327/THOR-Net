@@ -34,17 +34,18 @@ def h2o_collate_fn(samples):
 def create_loader(dataset_name, root, split, batch_size, num_kps3d=21, num_verts=778, h2o_info=None, other_params={}):
 
     transform = transforms.Compose([transforms.ToTensor()])
+    device = torch.device(other_params['DEVICE'])
     
     if dataset_name.lower() == 'h2o':
         input_tar_lists, annotation_tar_files, annotation_components, shuffle_buffer_size, my_preprocessor = h2o_info
         datapipe = create_datapipe(input_tar_lists, annotation_tar_files, annotation_components, shuffle_buffer_size)
         datapipe = datapipe.map(fn=my_preprocessor)
         loader = torch.utils.data.DataLoader(datapipe, batch_size=batch_size, num_workers=2, shuffle=True)
-    elif dataset_name == 'TEST_DATASET':
+    elif dataset_name == 'TEST_DATASET': # DEBUG
         seq = 'd_diskplacer_1/00145'
         print(f'Using custom train-val dataset ({seq}) ...', end=' ')
         split = 'train'
-        dataset = Dataset(root=root, load_set=split, transform=transform, num_kps3d=num_kps3d, num_verts=num_verts, other_params=other_params)
+        dataset = DatasetPOVSurgery(root=root, load_set=split, transform=transform, num_kps3d=num_kps3d, num_verts=num_verts, other_params=other_params)
         print(f'dataset loaded ({seq}) ...', end=' ')
         pbar = tqdm(total=len(dataset))
         for i, x in enumerate(dataset):

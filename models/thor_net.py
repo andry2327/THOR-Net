@@ -216,7 +216,7 @@ class THOR(FasterRCNN):
         adj = adj_mx_from_edges(num_pts=num_kps3d, edges=edges, sparse=False)            
         keypoint_graformer = GraFormer(adj=adj.to(device), hid_dim=hid_size, coords_dim=(input_size, 3), 
                                         n_pts=num_kps3d, num_layers=5, n_head=4, dropout=0.25)
-        
+
         # Coarse-to-fine GraFormer
         mesh_graformer = None
         if num_verts > 0:
