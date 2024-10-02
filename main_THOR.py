@@ -31,24 +31,14 @@ torch.multiprocessing.set_sharing_strategy('file_system')
 
 from utils.vis_utils import keypoints_to_ply, mesh_to_ply
 
-## DEBUG time
-from utils.utils_shared import log_time_file_path
-import datetime
-
-with open(log_time_file_path, 'w') as file:
-    file.write(f'Logging timing using 1 GPU ({datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")})\n\n')
-    file.write('-'*50)
-    file.write('\n\n')
-## DEBUG time  
-
 '-------------------------------------------------------------------------------'
 
 '------------------ OTHER INPUT PARAMETERS ------------------'
-IS_SAMPLE_DATASET = True # to use a sample of original dataset
+IS_SAMPLE_DATASET = False # to use a sample of original dataset
 TRAINING_SUBSET_SIZE = 0.001 # fraction of train set
 VALIDATION_SUBSET_SIZE = 0.001 # fraction of validation set
 USE_CUDA = True
-SAVE_TRAINING_RESULTS = False # Save 3d pose and mesh prediction during training and validation
+SAVE_TRAINING_RESULTS = True # Save 3d pose and mesh prediction during training and validation
 
 # Parameters for visualization during training
 RIGHT_HAND_FACES_PATH = '/home/aidara/Desktop/Thesis_Andrea/data/right_hand_faces.pt'
@@ -61,7 +51,7 @@ SEQUENCES_TO_VISUALIZE = [
 
 '------------------ INPUT PARAMETERS for MULTI-FRAME features ------------------'
 N_PREVIOUS_FRAMES = 2
-STRIDE_PREVIOUS_FRAMES = 30
+STRIDE_PREVIOUS_FRAMES = 10
 
 '-------------------------------------------------------------------------------'
 
@@ -193,6 +183,16 @@ logging.info('--'*50) if not log_file else None
 print('\n')
 
 print(f'🟢 Logging info in "{filename_log}"')
+
+## DEBUG time
+from utils.utils_shared import log_time_file_path
+import datetime
+
+with open(log_time_file_path, 'w') as file:
+    file.write(f'Logging timing using 1 GPU ({datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")})\n\n')
+    file.write('-'*50)
+    file.write('\n\n')
+## DEBUG time  
 
 """ load datasets """
 
